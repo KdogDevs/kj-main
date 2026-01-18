@@ -7,11 +7,11 @@ const Hero = () => {
   };
 
   return (
-    <section className="min-h-screen flex flex-col justify-center border-b-2 border-border px-6 md:px-12 lg:px-24">
-      <div className="max-w-6xl w-full flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16">
+    <section className="min-h-screen flex flex-col justify-center px-6 md:px-12 lg:px-24 pt-24">
+      <div className="max-w-6xl w-full mx-auto flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-16">
         {/* Text Content */}
         <div className="text-center lg:text-left flex-1">
-          <p className="font-mono text-sm md:text-base mb-4 tracking-wide">
+          <p className="font-mono text-sm md:text-base mb-4 tracking-wide text-muted-foreground">
             DEVELOPER / DESIGNER / BUILDER
           </p>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight mb-6">
@@ -25,7 +25,7 @@ const Hero = () => {
           <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
             <Button 
               size="lg" 
-              className="shadow-md hover:shadow-lg hover:translate-x-1 hover:translate-y-1 transition-all font-mono text-sm"
+              className="font-mono text-sm"
               onClick={scrollToProjects}
             >
               VIEW MY WORK
@@ -34,13 +34,13 @@ const Hero = () => {
         </div>
 
         {/* Profile Picture */}
-        <div className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 border-4 border-border bg-muted flex items-center justify-center shrink-0">
-          {/* Replace with your image: <img src="/your-photo.jpg" alt="Kagan Jensen" className="w-full h-full object-cover" /> */}
+        <div className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 shadow-xl flex items-center justify-center shrink-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+          {/* Replace with your image: <img src="/your-photo.jpg" alt="Kagan Jensen" className="w-full h-full object-cover rounded-3xl" /> */}
           <User className="w-16 h-16 md:w-24 md:h-24 text-muted-foreground" />
         </div>
       </div>
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-        <ArrowDown className="w-6 h-6" />
+        <ArrowDown className="w-6 h-6 text-muted-foreground" />
       </div>
     </section>
   );

@@ -29,7 +29,7 @@ const projects = [
 
 const Projects = () => {
   return (
-    <section id="projects" className="py-24 px-6 md:px-12 lg:px-24 border-b-2 border-border">
+    <section id="projects" className="py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-4xl md:text-5xl font-bold mb-4">SELECTED WORK</h2>
         <p className="text-muted-foreground font-mono mb-16">
@@ -40,7 +40,7 @@ const Projects = () => {
           {projects.map((project, index) => (
             <div
               key={index}
-              className="group border-2 border-border p-6 md:p-8 bg-card hover:bg-accent transition-colors cursor-pointer shadow-sm hover:shadow-md"
+              className="group rounded-2xl border border-border/50 p-6 md:p-8 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -52,7 +52,7 @@ const Projects = () => {
                       {project.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="font-mono text-xs border border-border px-2 py-1"
+                          className="font-mono text-xs rounded-full bg-secondary/80 backdrop-blur-sm border border-border/30 px-3 py-1"
                         >
                           {tag}
                         </span>
@@ -64,7 +64,7 @@ const Projects = () => {
                   </h3>
                   <p className="text-muted-foreground">{project.description}</p>
                 </div>
-                <ArrowUpRight className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ArrowUpRight className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </div>
             </div>
           ))}
