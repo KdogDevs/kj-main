@@ -1,28 +1,50 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const navLinks = [
-  { label: "Work", href: "#projects" },
-  { label: "Resume", href: "#resume" },
-  { label: "Services", href: "#services" },
+  { label: "Work", href: "/#projects" },
+  { label: "Resume", href: "/#resume" },
+  { label: "Services", href: "/#services" },
 ];
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleClick = (href: string) => {
     setIsOpen(false);
-    const element = document.querySelector(href);
-    element?.scrollIntoView({ behavior: "smooth" });
+    
+    const isHomePage = location.pathname === "/";
+    const hash = href.replace("/", "");
+    
+    if (isHomePage) {
+      // Already on home page, just scroll
+      const element = document.querySelector(hash);
+      element?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Navigate to home page with hash
+      navigate(href);
+    }
+  };
+
+  const handleHomeClick = () => {
+    setIsOpen(false);
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
   };
 
   return (
     <nav className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-6xl">
       <div className="flex items-center justify-between px-6 py-3 rounded-2xl bg-background/70 backdrop-blur-xl border border-border/50 shadow-lg">
-        <a href="#" className="font-bold text-xl tracking-tight">
+        <button onClick={handleHomeClick} className="font-bold text-xl tracking-tight">
           KJ
-        </a>
+        </button>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
