@@ -32,8 +32,8 @@ const skills = [
 
 const Resume = () => {
   return (
-    <section id="resume" className="py-24 px-6 md:px-12 lg:px-24 border-b-2 border-border bg-secondary">
-      <div className="max-w-6xl mx-auto">
+    <section id="resume" className="py-24 px-6 md:px-12 lg:px-24">
+      <div className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg">
         <h2 className="text-4xl md:text-5xl font-bold mb-4">RESUME</h2>
         <p className="text-muted-foreground font-mono mb-16">
           Experience & skills
@@ -41,12 +41,12 @@ const Resume = () => {
 
         <div className="grid md:grid-cols-2 gap-16">
           <div>
-            <h3 className="text-2xl font-bold mb-8 border-b-2 border-border pb-4">
+            <h3 className="text-2xl font-bold mb-8 pb-4">
               EXPERIENCE
             </h3>
             <div className="space-y-8">
               {experience.map((exp, index) => (
-                <div key={index} className="border-l-2 border-border pl-6">
+                <div key={index} className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6">
                   <span className="font-mono text-sm text-muted-foreground">
                     {exp.period}
                   </span>
@@ -61,14 +61,14 @@ const Resume = () => {
           </div>
 
           <div>
-            <h3 className="text-2xl font-bold mb-8 border-b-2 border-border pb-4">
+            <h3 className="text-2xl font-bold mb-8 pb-4">
               SKILLS
             </h3>
             <div className="grid grid-cols-2 gap-4">
               {skills.map((skill) => (
                 <div
                   key={skill}
-                  className="border-2 border-border p-4 font-mono text-sm hover:bg-accent transition-colors"
+                  className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-4 font-mono text-sm hover:bg-background/70 hover:shadow-md transition-all duration-300"
                 >
                   {skill}
                 </div>

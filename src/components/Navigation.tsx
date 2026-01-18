@@ -18,19 +18,19 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b-2 border-border">
-      <div className="flex items-center justify-between px-6 md:px-12 lg:px-24 py-4">
+    <nav className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-6xl">
+      <div className="flex items-center justify-between px-6 py-3 rounded-2xl bg-background/70 backdrop-blur-xl border border-border/50 shadow-lg">
         <a href="#" className="font-bold text-xl tracking-tight">
           KJ
         </a>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-2">
           {navLinks.map((link) => (
             <button
               key={link.label}
               onClick={() => handleClick(link.href)}
-              className="font-mono text-sm hover:underline underline-offset-4"
+              className="font-mono text-sm px-4 py-2 rounded-xl hover:bg-accent/50 transition-all duration-300"
             >
               {link.label}
             </button>
@@ -50,12 +50,12 @@ const Navigation = () => {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t-2 border-border bg-background">
+        <div className="md:hidden mt-2 rounded-2xl bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg overflow-hidden">
           {navLinks.map((link) => (
             <button
               key={link.label}
               onClick={() => handleClick(link.href)}
-              className="block w-full text-left px-6 py-4 font-mono text-sm border-b border-border hover:bg-accent"
+              className="block w-full text-left px-6 py-4 font-mono text-sm hover:bg-accent/50 transition-all duration-300"
             >
               {link.label}
             </button>
