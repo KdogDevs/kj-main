@@ -20,7 +20,7 @@ const Hero = () => {
             JENSEN
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-xl mb-10 font-mono mx-auto lg:mx-0">
-            I build websites that work hard and look sharp. Let's create something together.
+            Engineering solutions. Building experiences. Creating what's next.
           </p>
           <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
             <Button 
