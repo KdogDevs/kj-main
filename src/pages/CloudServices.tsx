@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Cloud, Server, Shield, Key, FileText, ExternalLink } from "lucide-react";
@@ -31,6 +32,10 @@ const services = [
 ];
 
 const CloudServices = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
