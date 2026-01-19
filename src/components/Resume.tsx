@@ -37,7 +37,7 @@ const Resume = () => {
       <div className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg">
         <h2 className="text-4xl md:text-5xl font-bold mb-4">RESUME</h2>
         <p className="text-muted-foreground font-mono mb-16">
-          Kagan Jensen • kagen@kagen.dev • +1(678)-200-3197
+          Kagen Jensen • kagen@kagen.dev • +1(678)-200-3197
         </p>
 
         <div className="grid md:grid-cols-2 gap-16">
