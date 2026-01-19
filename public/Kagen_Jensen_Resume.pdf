@@ -1,0 +1,124 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 2200
+>>
+stream
+BT
+/F2 24 Tf
+72 720 Td
+(KAGEN JENSEN) Tj
+/F1 10 Tf
+0 -20 Td
+(kagen@kagen.dev | +1\(678\)-200-3197 | kagen.dev) Tj
+0 -40 Td
+/F2 14 Tf
+(EDUCATION) Tj
+/F1 10 Tf
+0 -20 Td
+(The University of Alabama, Tuscaloosa, AL) Tj
+0 -15 Td
+(Bachelor of Science in Electrical Engineering - Expected May 2029) Tj
+0 -12 Td
+(Cadet in Air Force ROTC Detachment 10) Tj
+0 -20 Td
+(Saint Pius X Catholic High School, Atlanta, Georgia) Tj
+0 -15 Td
+(High School Diploma - May 2025) Tj
+0 -12 Td
+(GPA: 3.40/4.00 | Head of Broadcast Club | Formation Coordinator for The Fersatti Brotherhood) Tj
+0 -35 Td
+/F2 14 Tf
+(WORK EXPERIENCE) Tj
+/F1 10 Tf
+0 -20 Td
+(Java Engineer Intern - MyVelo TV, Atlanta, Georgia) Tj
+0 -15 Td
+(Summer 2025) Tj
+0 -12 Td
+(Implemented strategic features expanding platform functionality.) Tj
+0 -12 Td
+(Developed foundational code for channel rails and UI for client demos) Tj
+0 -12 Td
+(and third-party API integrations.) Tj
+0 -12 Td
+(Documented codebase architecture with comprehensive system workflow diagrams.) Tj
+0 -35 Td
+/F2 14 Tf
+(TECHNICAL EXPERIENCE) Tj
+/F1 10 Tf
+0 -20 Td
+(- Android TV application development with custom UI design and implementation) Tj
+0 -15 Td
+(- React website development focused on aesthetic appeal and performance optimization) Tj
+0 -15 Td
+(- Created Schedule SPX, a scheduling platform for daily bell schedules) Tj
+0 -35 Td
+/F2 14 Tf
+(PROJECTS) Tj
+/F1 10 Tf
+0 -20 Td
+(Shift2Stream - Modern streaming platform with React) Tj
+0 -15 Td
+(Schedule SPX - Scheduling platform for daily bell schedules) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+6 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-Bold
+>>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000266 00000 n 
+0000002520 00000 n 
+0000002597 00000 n 
+trailer
+<<
+/Size 7
+/Root 1 0 R
+>>
+startxref
+2680
+%%EOF
