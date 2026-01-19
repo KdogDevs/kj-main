@@ -9,37 +9,37 @@ const services = [
     icon: Cloud,
     name: "Nextcloud",
     description: "Personal cloud storage for file sync, sharing, and collaboration across all devices.",
-    url: "#",
+    url: "https://nextcloud.atl-1.cc/",
   },
   {
     icon: Film,
     name: "Jellyfin",
     description: "Stream movies, TV shows, and music to any device, anywhere.",
-    url: "#",
+    url: "https://jellyfin.atl-1.cc/",
   },
   {
     icon: Image,
     name: "Immich",
     description: "Self-hosted photo and video backup solution with powerful search and sharing.",
-    url: "#",
+    url: "https://immich.atl-1.cc/",
   },
   {
     icon: GitBranch,
     name: "Gitea",
     description: "Lightweight Git hosting for version control and code collaboration.",
-    url: "#",
+    url: "https://git.atl-1.cc/",
   },
   {
     icon: BookOpen,
     name: "Kiwix",
     description: "Offline access to educational content including Wikipedia and other resources.",
-    url: "#",
+    url: "https://kiwix.atl-1.cc/",
   },
   {
     icon: Key,
     name: "Pocket ID",
     description: "Single sign-on portal to manage your account, password, and 2FA settings.",
-    url: "#",
+    url: "https://id.atl-1.cc/",
   },
 ];
 
