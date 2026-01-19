@@ -2,28 +2,18 @@ import { ArrowUpRight } from "lucide-react";
 
 const projects = [
   {
-    title: "E-Commerce Platform",
-    description: "Full-stack online store with payment integration and inventory management",
-    tags: ["React", "Node.js", "Stripe"],
+    title: "Shift2Stream",
+    description: "Professional streaming and broadcast solutions platform for content creators and media professionals",
+    tags: ["React", "Streaming", "Web Design"],
+    year: "2025",
+    url: "https://shift2stream.com",
+  },
+  {
+    title: "Schedule SPX",
+    description: "Scheduling website displaying daily bell schedules for Saint Pius X Catholic High School students and staff",
+    tags: ["React", "TypeScript", "Utility"],
     year: "2024",
-  },
-  {
-    title: "SaaS Dashboard",
-    description: "Analytics dashboard for tracking business metrics and user engagement",
-    tags: ["TypeScript", "Next.js", "PostgreSQL"],
-    year: "2024",
-  },
-  {
-    title: "Portfolio Generator",
-    description: "Tool that helps creatives build stunning portfolio sites in minutes",
-    tags: ["React", "Tailwind", "AI"],
-    year: "2023",
-  },
-  {
-    title: "Mobile App Companion",
-    description: "Web companion app for a fitness tracking mobile application",
-    tags: ["React", "API", "Charts"],
-    year: "2023",
+    url: "https://schedulespx.com",
   },
 ];
 
@@ -37,10 +27,13 @@ const Projects = () => {
         </p>
         
         <div className="grid gap-6">
-          {projects.map((project, index) => (
-            <div
+{projects.map((project, index) => (
+            <a
               key={index}
-              className="group rounded-2xl border border-border/50 p-6 md:p-8 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1"
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block rounded-2xl border border-border/50 p-6 md:p-8 bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -66,7 +59,7 @@ const Projects = () => {
                 </div>
                 <ArrowUpRight className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
