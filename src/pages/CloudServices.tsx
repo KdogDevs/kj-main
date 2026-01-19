@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Cloud, Server, Shield, Key, FileText, ExternalLink } from "lucide-react";
+import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const services = [
@@ -12,21 +12,27 @@ const services = [
     url: "#",
   },
   {
-    icon: Server,
-    name: "Plex Media Server",
+    icon: Film,
+    name: "Jellyfin",
     description: "Stream movies, TV shows, and music to any device, anywhere.",
     url: "#",
   },
   {
-    icon: Shield,
-    name: "Home Assistant",
-    description: "Smart home automation and monitoring for all connected devices.",
+    icon: Image,
+    name: "Immich",
+    description: "Self-hosted photo and video backup solution with powerful search and sharing.",
     url: "#",
   },
   {
-    icon: Key,
-    name: "Vaultwarden",
-    description: "Self-hosted password manager for secure credential storage.",
+    icon: GitBranch,
+    name: "Gitea",
+    description: "Lightweight Git hosting for version control and code collaboration.",
+    url: "#",
+  },
+  {
+    icon: BookOpen,
+    name: "Kiwix",
+    description: "Offline access to educational content including Wikipedia and other resources.",
     url: "#",
   },
 ];
@@ -96,9 +102,9 @@ const CloudServices = () => {
               </div>
 
               <div className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6 hover:bg-background/70 transition-all duration-300">
-                <h3 className="text-xl font-bold mb-3">2. Sign In</h3>
+                <h3 className="text-xl font-bold mb-3">2. Sign In with Pocket ID</h3>
                 <p className="text-muted-foreground">
-                  Use your provided credentials to sign in to any service. Most services support single sign-on (SSO), so you only need to log in once.
+                  All services use Pocket ID for single sign-on (SSO). Sign in once and you'll have access to everything.
                 </p>
               </div>
 
