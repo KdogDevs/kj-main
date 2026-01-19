@@ -110,22 +110,26 @@ const CloudServices = () => {
               <div className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6 hover:bg-background/70 transition-all duration-300">
                 <h3 className="text-xl font-bold mb-3">2. Sign In with Pocket ID</h3>
                 <p className="text-muted-foreground">
-                  All services use Pocket ID for single sign-on (SSO). Sign in once and you'll have access to everything.
+                  All services use Pocket ID with passkey authentication for secure, passwordless sign-on. Sign in once and you'll have access to everything.
                 </p>
               </div>
 
               <div className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6 hover:bg-background/70 transition-all duration-300">
-                <h3 className="text-xl font-bold mb-3">3. Set Up 2FA</h3>
-                <p className="text-muted-foreground">
-                  For security, enable two-factor authentication using an app like Google Authenticator or Authy. This adds an extra layer of protection to your account.
+                <h3 className="text-xl font-bold mb-3">3. Download Apps</h3>
+                <p className="text-muted-foreground mb-4">
+                  Each service has mobile and desktop apps available for a better experience:
                 </p>
-              </div>
-
-              <div className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6 hover:bg-background/70 transition-all duration-300">
-                <h3 className="text-xl font-bold mb-3">4. Download Apps</h3>
-                <p className="text-muted-foreground">
-                  Each service has mobile and desktop apps available. Download them from the App Store, Google Play, or directly from the service dashboard.
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <a href="https://nextcloud.com/install/#install-clients" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                    <ExternalLink className="w-4 h-4" /> Nextcloud Clients
+                  </a>
+                  <a href="https://jellyfin.org/downloads/clients" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                    <ExternalLink className="w-4 h-4" /> Jellyfin Clients
+                  </a>
+                  <a href="https://immich.app/docs/features/mobile-app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                    <ExternalLink className="w-4 h-4" /> Immich Mobile App
+                  </a>
+                </div>
               </div>
             </div>
 
