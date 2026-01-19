@@ -8,7 +8,7 @@ const Footer = () => {
           © {new Date().getFullYear()} Kagan Jensen. All rights reserved.
         </p>
         <a
-          href="https://github.com"
+          href="https://github.com/KdogDevs"
           target="_blank"
           rel="noopener noreferrer"
           className="p-3 rounded-xl bg-card/60 backdrop-blur-sm border border-border/40 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
