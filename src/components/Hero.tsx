@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDown, User } from "lucide-react";
+import { ArrowDown } from "lucide-react";
+import profilePhoto from "@/assets/profile-photo.jpg";
 
 const Hero = () => {
   const scrollToProjects = () => {
@@ -34,9 +35,8 @@ const Hero = () => {
         </div>
 
         {/* Profile Picture */}
-        <div className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 shadow-xl flex items-center justify-center shrink-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-          {/* Replace with your image: <img src="/your-photo.jpg" alt="Kagan Jensen" className="w-full h-full object-cover rounded-3xl" /> */}
-          <User className="w-16 h-16 md:w-24 md:h-24 text-muted-foreground" />
+        <div className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 rounded-3xl overflow-hidden border border-border/40 shadow-xl shrink-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+          <img src={profilePhoto} alt="Kagan Jensen" className="w-full h-full object-cover" />
         </div>
       </div>
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
