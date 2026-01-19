@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+
 const experience = [
   {
     role: "Java Engineer Intern",
@@ -32,10 +35,28 @@ const technicalExperience = [
 ];
 
 const Resume = () => {
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = '/Kagen_Jensen_Resume.pdf';
+    link.download = 'Kagen_Jensen_Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <section id="resume" className="py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg">
-        <h2 className="text-4xl md:text-5xl font-bold mb-4">RESUME</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold">RESUME</h2>
+          <Button 
+            onClick={handleDownload}
+            className="font-mono text-sm gap-2 w-fit"
+          >
+            <Download className="w-4 h-4" />
+            DOWNLOAD PDF
+          </Button>
+        </div>
         <p className="text-muted-foreground font-mono mb-16">
           Kagen Jensen • kagen@kagen.dev • +1(678)-200-3197
         </p>
