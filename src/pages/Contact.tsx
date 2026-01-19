@@ -56,7 +56,24 @@ const Contact = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const generateVCard = () => {
+  const generateVCard = async () => {
+    // Convert profile photo to base64
+    let photoBase64 = "";
+    try {
+      const response = await fetch(profilePhoto);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      photoBase64 = await new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(",")[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Failed to load photo for vCard:", error);
+    }
+
     const vCard = `BEGIN:VCARD
 VERSION:3.0
 FN:${contactInfo.firstName} ${contactInfo.lastName}
@@ -66,7 +83,8 @@ TEL;TYPE=CELL:${contactInfo.phone}
 EMAIL:${contactInfo.email}
 URL:${contactInfo.website}
 X-SOCIALPROFILE;TYPE=github:${contactInfo.github}
-X-SOCIALPROFILE;TYPE=instagram:${contactInfo.instagram}
+X-SOCIALPROFILE;TYPE=instagram:${contactInfo.instagram}${photoBase64 ? `
+PHOTO;ENCODING=b;TYPE=JPEG:${photoBase64}` : ""}
 END:VCARD`;
 
     const blob = new Blob([vCard], { type: "text/vcard" });
