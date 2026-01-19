@@ -35,6 +35,12 @@ const services = [
     description: "Offline access to educational content including Wikipedia and other resources.",
     url: "#",
   },
+  {
+    icon: Key,
+    name: "Pocket ID",
+    description: "Single sign-on portal to manage your account, password, and 2FA settings.",
+    url: "#",
+  },
 ];
 
 const CloudServices = () => {
