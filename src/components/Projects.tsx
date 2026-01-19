@@ -1,6 +1,4 @@
 import { ArrowUpRight } from "lucide-react";
-import shift2streamImg from "@/assets/project-shift2stream.jpg";
-import schedulespxImg from "@/assets/project-schedulespx.jpg";
 
 const projects = [
   {
@@ -9,7 +7,6 @@ const projects = [
     tags: ["React", "Streaming", "Web Design"],
     year: "2025",
     url: "https://shift2stream.com",
-    image: shift2streamImg,
   },
   {
     title: "Schedule SPX",
@@ -17,7 +14,6 @@ const projects = [
     tags: ["React", "TypeScript", "Utility"],
     year: "2024",
     url: "https://schedulespx.com",
-    image: schedulespxImg,
   },
 ];
 
@@ -39,12 +35,14 @@ const Projects = () => {
               rel="noopener noreferrer"
               className="group block rounded-2xl border border-border/50 overflow-hidden bg-card/60 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1"
             >
-              {/* Project Preview Image */}
-              <div className="relative overflow-hidden aspect-video">
-                <img
-                  src={project.image}
-                  alt={`${project.title} preview`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              {/* Project Preview Iframe */}
+              <div className="relative overflow-hidden aspect-video pointer-events-none">
+                <iframe
+                  src={project.url}
+                  title={`${project.title} preview`}
+                  className="w-[200%] h-[200%] origin-top-left scale-50 border-0"
+                  loading="lazy"
+                  sandbox="allow-scripts allow-same-origin"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-transparent to-transparent" />
               </div>
