@@ -36,7 +36,7 @@ const Hero = () => {
 
         {/* Profile Picture */}
         <div className="w-40 h-40 md:w-56 md:h-56 lg:w-80 lg:h-80 rounded-3xl overflow-hidden border border-border/40 shadow-xl shrink-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-          <img src={profilePhoto} alt="Kagen Jensen" className="w-full h-full object-cover scale-[1.4] object-[center_25%]" />
+          <img src={profilePhoto} alt="Kagen Jensen" className="w-full h-full object-cover scale-[1.8] md:scale-[1.4] object-[center_20%] md:object-[center_25%]" />
         </div>
       </div>
       <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 animate-bounce hidden md:block">
