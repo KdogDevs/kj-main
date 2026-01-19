@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="py-8 px-6 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="font-mono text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Kagan Jensen. All rights reserved.
+          © {new Date().getFullYear()} Kagen Jensen. All rights reserved.
         </p>
         <a
           href="https://github.com/KdogDevs"
