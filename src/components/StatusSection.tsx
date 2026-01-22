@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
-import { Activity, CheckCircle, AlertTriangle, XCircle, ExternalLink, Bell, Loader2 } from "lucide-react";
+import { Activity, CheckCircle, AlertTriangle, XCircle, ExternalLink, Bell, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,6 +37,7 @@ const StatusSection = () => {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [subscribing, setSubscribing] = useState(false);
+  const [actionMode, setActionMode] = useState<"subscribe" | "unsubscribe">("subscribe");
   const { toast } = useToast();
 
   const fetchStatus = async (isInitial = false) => {
@@ -58,27 +65,42 @@ const StatusSection = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
 
     try {
       setSubscribing(true);
-      const { data, error } = await supabase.functions.invoke("uptime-subscribe", {
-        body: { email: email.trim() },
-      });
+      
+      if (actionMode === "subscribe") {
+        const { data, error } = await supabase.functions.invoke("uptime-subscribe", {
+          body: { email: email.trim() },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Subscribed!",
-        description: "You'll receive notifications when services go down.",
-      });
+        toast({
+          title: "Subscribed!",
+          description: "You'll receive notifications when services go down.",
+        });
+      } else {
+        const { data, error } = await supabase.functions.invoke("uptime-unsubscribe", {
+          body: { email: email.trim() },
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Unsubscribed",
+          description: "You will no longer receive status notifications.",
+        });
+      }
+      
       setEmail("");
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "Subscription failed",
+        title: actionMode === "subscribe" ? "Subscription failed" : "Unsubscribe failed",
         description: err.message || "Please try again later.",
       });
     } finally {
@@ -195,9 +217,13 @@ const StatusSection = () => {
         <div className="p-6 bg-secondary/20 border-t border-border/30">
           <div className="flex items-center gap-2 mb-3">
             <Bell className="w-4 h-4" />
-            <span className="font-medium text-sm">Get notified when services go down</span>
+            <span className="font-medium text-sm">
+              {actionMode === "subscribe" 
+                ? "Get notified when services go down" 
+                : "Unsubscribe from status notifications"}
+            </span>
           </div>
-          <form onSubmit={handleSubscribe} className="flex gap-3">
+          <form onSubmit={handleSubmit} className="flex gap-3">
             <Input
               type="email"
               placeholder="Enter your email"
@@ -206,17 +232,38 @@ const StatusSection = () => {
               className="flex-1 rounded-xl"
               required
             />
-            <Button 
-              type="submit" 
-              disabled={subscribing}
-              className="rounded-xl"
-            >
-              {subscribing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Subscribe"
-              )}
-            </Button>
+            <div className="flex">
+              <Button 
+                type="submit" 
+                disabled={subscribing}
+                className="rounded-l-xl rounded-r-none border-r-0"
+              >
+                {subscribing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  actionMode === "subscribe" ? "Subscribe" : "Unsubscribe"
+                )}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    type="button"
+                    variant="default" 
+                    className="rounded-l-none rounded-r-xl px-2 border-l border-primary-foreground/20"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setActionMode("subscribe")}>
+                    Subscribe
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActionMode("unsubscribe")}>
+                    Unsubscribe
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </form>
         </div>
       </div>
