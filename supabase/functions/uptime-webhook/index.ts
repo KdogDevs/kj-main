@@ -93,20 +93,97 @@ serve(async (req: Request) => {
       );
     }
 
-    const statusText = isDown ? "🔴 DOWN" : "🟢 UP";
-    const subject = `${statusText}: ${monitorName}`;
+    const statusText = isDown ? "DOWN" : "OPERATIONAL";
+    const statusEmoji = isDown ? "🔴" : "🟢";
+    const subject = `${statusEmoji} ${monitorName} is ${statusText}`;
+    const timestamp = payload.heartbeat?.time || new Date().toISOString();
+    
     const htmlBody = `
-      <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: ${isDown ? '#ef4444' : '#22c55e'};">${statusText}</h2>
-        <h3>${monitorName}</h3>
-        <p>${message}</p>
-        <p style="color: #666; font-size: 14px;">Time: ${payload.heartbeat?.time || new Date().toISOString()}</p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="color: #999; font-size: 12px;">
-          You're receiving this because you subscribed to Kagen Cloud status updates.
-          <br><a href="https://uptime.kagen.dev/status/cloud-services">View Status Page</a>
-        </p>
-      </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 560px; margin: 0 auto; background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 32px 32px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <table role="presentation" style="width: 100%;">
+                <tr>
+                  <td>
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">KAGEN CLOUD</h1>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Status Alert</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Status Badge -->
+          <tr>
+            <td style="padding: 32px;">
+              <table role="presentation" style="width: 100%; background: ${isDown ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)'}; border: 1px solid ${isDown ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}; border-radius: 16px;">
+                <tr>
+                  <td style="padding: 24px; text-align: center;">
+                    <p style="margin: 0 0 8px; font-size: 32px;">${statusEmoji}</p>
+                    <h2 style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: ${isDown ? '#ef4444' : '#22c55e'}; text-transform: uppercase; letter-spacing: 1.5px;">${statusText}</h2>
+                    <p style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">${monitorName}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Details -->
+          <tr>
+            <td style="padding: 0 32px 32px;">
+              <table role="presentation" style="width: 100%; background: rgba(255,255,255,0.04); border-radius: 12px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 12px; font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Details</p>
+                    <p style="margin: 0 0 16px; font-size: 15px; color: rgba(255,255,255,0.8); line-height: 1.5;">${message || 'No additional details available.'}</p>
+                    <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.4);">
+                      <span style="display: inline-block; margin-right: 8px;">🕐</span>${timestamp}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding: 0 32px 32px;">
+              <table role="presentation" style="width: 100%;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="https://kj-main.lovable.app/cloud-services" style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0.3px;">View Status Dashboard</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 32px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05);">
+              <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.35); text-align: center; line-height: 1.6;">
+                You're receiving this because you subscribed to Kagen Cloud status alerts.<br>
+                <a href="https://kj-main.lovable.app/cloud-services" style="color: rgba(255,255,255,0.5); text-decoration: underline;">Manage Preferences</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
     `;
 
     // Create nodemailer transporter
