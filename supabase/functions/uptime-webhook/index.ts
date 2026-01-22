@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import nodemailer from "npm:nodemailer@6.9.9";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,9 +78,9 @@ serve(async (req: Request) => {
       );
     }
 
-    // Send emails via SMTP
+    // Send emails via SMTP using nodemailer
     const smtpHost = Deno.env.get("SMTP_HOST");
-    const smtpPort = Deno.env.get("SMTP_PORT") || "587";
+    const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "587");
     const smtpUser = Deno.env.get("SMTP_USER");
     const smtpPass = Deno.env.get("SMTP_PASS");
     const smtpFrom = Deno.env.get("SMTP_FROM") || "noreply@kagen.dev";
@@ -108,20 +109,14 @@ serve(async (req: Request) => {
       </div>
     `;
 
-    // Use Deno's smtp client with STARTTLS
-    const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
-    
-    const port = parseInt(smtpPort);
-    const client = new SMTPClient({
-      connection: {
-        hostname: smtpHost,
-        port: port,
-        // Use STARTTLS for port 587, direct TLS for 465
-        tls: port === 465,
-        auth: {
-          username: smtpUser,
-          password: smtpPass,
-        },
+    // Create nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports (STARTTLS)
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
@@ -130,11 +125,10 @@ serve(async (req: Request) => {
 
     for (const subscriber of subscribers) {
       try {
-        await client.send({
+        await transporter.sendMail({
           from: smtpFrom,
           to: subscriber.email,
           subject: subject,
-          content: "auto",
           html: htmlBody,
         });
         sentCount++;
@@ -144,8 +138,6 @@ serve(async (req: Request) => {
         errors.push(subscriber.email);
       }
     }
-
-    await client.close();
 
     return new Response(
       JSON.stringify({ 
