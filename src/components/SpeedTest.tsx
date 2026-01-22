@@ -54,6 +54,8 @@ const SpeedTest = () => {
             src={`${SPEEDTEST_SERVER}/?Run`}
             className="w-full h-[500px] md:h-[550px]"
             title="Speed Test"
+            scrolling="no"
+            style={{ overflow: 'hidden' }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
           />
         </div>
