@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
-import profilePhoto from "@/assets/profile-photo.jpg";
+import { getAssetUrl, ASSETS } from "@/lib/storage";
+
+const profilePhoto = getAssetUrl(ASSETS.profilePhoto);
 
 const Hero = () => {
   const scrollToProjects = () => {

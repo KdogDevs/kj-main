@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import profilePhoto from "@/assets/profile-photo.jpg";
+import { getAssetUrl, ASSETS } from "@/lib/storage";
+
+const profilePhoto = getAssetUrl(ASSETS.profilePhoto);
 
 const contactInfo = {
   firstName: "Kagen",
