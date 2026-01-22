@@ -33,13 +33,9 @@ const StatusSection = () => {
   const [subscribing, setSubscribing] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchStatus();
-  }, []);
-
-  const fetchStatus = async () => {
+  const fetchStatus = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
       const { data, error } = await supabase.functions.invoke("uptime-status");
       
       if (error) throw error;
@@ -49,9 +45,18 @@ const StatusSection = () => {
       console.error("Failed to fetch status:", err);
       setError("Unable to load status");
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStatus(true);
+    
+    // Poll every 30 seconds for real-time updates
+    const interval = setInterval(() => fetchStatus(false), 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
