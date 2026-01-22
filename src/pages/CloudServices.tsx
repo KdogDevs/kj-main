@@ -164,7 +164,7 @@ const CloudServices = () => {
               <SpeedTest />
               
               <p className="mt-6 text-sm text-muted-foreground">
-                This speed test measures your connection to our Atlanta-based servers. Results may vary based on your location and network conditions.
+                This speed test measures your connection to our Virginia-based servers. Results may vary based on your location and network conditions.
               </p>
             </div>
           </section>
