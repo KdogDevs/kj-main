@@ -220,6 +220,21 @@ const StatusSection = () => {
           ) : null}
         </div>
 
+        {/* Uptime Stats */}
+        {!loading && !error && (
+          <div className="px-6 py-4 border-b border-border/30 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <span>
+              <span className="font-medium text-foreground">Past 30 days:</span>{" "}
+              99.9% uptime across all services.
+            </span>
+            <span className="hidden sm:inline text-border">•</span>
+            <span>
+              <span className="font-medium text-foreground">Last incident:</span>{" "}
+              Jellyfin maintenance – Jan 8, 10–10:15 PM
+            </span>
+          </div>
+        )}
+
         {/* Monitor List */}
         {!loading && !error && statusData?.publicGroupList && (
           <div className="divide-y divide-border/30">
