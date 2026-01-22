@@ -166,7 +166,7 @@ const SpeedTest = () => {
       )}
 
       <p className="text-xs text-muted-foreground text-center">
-        Powered by OpenSpeedTest • Server: speed.kagen.dev
+        Powered by OpenSpeedTest • Virginia-based servers
       </p>
     </div>
   );
