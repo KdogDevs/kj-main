@@ -46,16 +46,18 @@ const SpeedTest = () => {
         )}
       </div>
 
-      {/* OpenSpeedTest Iframe */}
-      <div className="rounded-xl overflow-hidden border border-border/30 bg-background/50 backdrop-blur-sm">
-        <iframe
-          ref={iframeRef}
-          src={SPEEDTEST_SERVER}
-          className="w-full h-[500px] md:h-[550px]"
-          title="Speed Test"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-        />
-      </div>
+      {/* OpenSpeedTest Iframe - only shown after clicking Start */}
+      {isRunning && (
+        <div className="rounded-xl overflow-hidden border border-border/30 bg-background/50 backdrop-blur-sm">
+          <iframe
+            ref={iframeRef}
+            src={`${SPEEDTEST_SERVER}/?Run`}
+            className="w-full h-[500px] md:h-[550px]"
+            title="Speed Test"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+          />
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground text-center">
         Powered by OpenSpeedTest • Server: speed.kagen.dev
