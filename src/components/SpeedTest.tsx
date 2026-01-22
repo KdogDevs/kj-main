@@ -14,6 +14,7 @@ interface SpeedTestResult {
 }
 
 const SPEEDTEST_SERVER = "https://speed.kagen.dev";
+const BRIDGE_PATH = "/bridge.html";
 
 const SpeedTest = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -93,12 +94,13 @@ const SpeedTest = () => {
 
   return (
     <div className="space-y-8">
-      {/* Hidden iframe for actual speed test */}
+      {/* Hidden iframe for speed test bridge */}
       <iframe
         ref={iframeRef}
-        src={`${SPEEDTEST_SERVER}/iframe.html`}
+        src={`${SPEEDTEST_SERVER}${BRIDGE_PATH}`}
         className="hidden"
         title="Speed Test Engine"
+        sandbox="allow-scripts allow-same-origin"
       />
 
       {/* Header & Controls */}
