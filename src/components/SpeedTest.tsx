@@ -1,38 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Gauge, Play, Square, ArrowDown, ArrowUp, Activity, Wifi } from "lucide-react";
+import { Play, Square, ArrowDown, ArrowUp, Activity, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-interface SpeedTestData {
-  testState: number;
-  dlStatus: string;
-  ulStatus: string;
-  pingStatus: string;
-  jitterStatus: string;
-  dlProgress: number;
-  ulProgress: number;
-  pingProgress: number;
+interface SpeedTestResult {
+  download: string;
+  upload: string;
+  ping: string;
+  jitter: string;
   clientIp: string;
-}
-
-declare global {
-  interface Window {
-    Speedtest: new () => SpeedtestInstance;
-  }
-}
-
-interface SpeedtestInstance {
-  onupdate: ((data: SpeedTestData) => void) | null;
-  onend: ((aborted: boolean) => void) | null;
-  setParameter: (name: string, value: string | number | boolean) => void;
-  start: () => void;
-  abort: () => void;
+  testState: number;
+  progress: number;
 }
 
 const SPEEDTEST_SERVER = "https://speed.kagen.dev";
 
 const SpeedTest = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [testState, setTestState] = useState(-1);
   const [downloadSpeed, setDownloadSpeed] = useState("");
@@ -41,95 +24,53 @@ const SpeedTest = () => {
   const [jitter, setJitter] = useState("");
   const [progress, setProgress] = useState(0);
   const [clientIp, setClientIp] = useState("");
-  const speedtestRef = useRef<SpeedtestInstance | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Load the LibreSpeed script from the server
+  // Listen for messages from the iframe
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = `${SPEEDTEST_SERVER}/speedtest.js`;
-    script.async = true;
-    script.onload = () => {
-      setIsLoaded(true);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== SPEEDTEST_SERVER) return;
+      
+      const data = event.data as SpeedTestResult;
+      if (!data || typeof data.testState === 'undefined') return;
+
+      setTestState(data.testState);
+      if (data.download) setDownloadSpeed(data.download);
+      if (data.upload) setUploadSpeed(data.upload);
+      if (data.ping) setPing(data.ping);
+      if (data.jitter) setJitter(data.jitter);
+      if (data.clientIp) setClientIp(data.clientIp);
+      if (typeof data.progress === 'number') setProgress(data.progress);
+
+      // Test finished or aborted
+      if (data.testState === 4 || data.testState === 5) {
+        setIsRunning(false);
+        if (data.testState === 4) setProgress(100);
+      }
     };
-    script.onerror = () => {
-      console.error("Failed to load speed test script");
-    };
-    document.body.appendChild(script);
 
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handleUpdate = useCallback((data: SpeedTestData) => {
-    setTestState(data.testState);
-    
-    if (data.dlStatus) setDownloadSpeed(data.dlStatus);
-    if (data.ulStatus) setUploadSpeed(data.ulStatus);
-    if (data.pingStatus) setPing(data.pingStatus);
-    if (data.jitterStatus) setJitter(data.jitterStatus);
-    if (data.clientIp) setClientIp(data.clientIp);
-
-    // Calculate overall progress
-    const dlProg = data.dlProgress || 0;
-    const ulProg = data.ulProgress || 0;
-    const pingProg = data.pingProgress || 0;
-    
-    let overallProgress = 0;
-    if (data.testState === 1) {
-      overallProgress = dlProg * 33;
-    } else if (data.testState === 2) {
-      overallProgress = 33 + pingProg * 33;
-    } else if (data.testState === 3) {
-      overallProgress = 66 + ulProg * 34;
-    } else if (data.testState === 4) {
-      overallProgress = 100;
-    }
-    setProgress(overallProgress);
-  }, []);
-
-  const handleEnd = useCallback((aborted: boolean) => {
-    setIsRunning(false);
-    if (aborted) {
-      setTestState(-1);
-      setProgress(0);
-    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, []);
 
   const startTest = useCallback(() => {
-    if (!window.Speedtest) return;
-
-    // Reset state
     setDownloadSpeed("");
     setUploadSpeed("");
     setPing("");
     setJitter("");
     setProgress(0);
     setTestState(0);
-
-    const s = new window.Speedtest();
-    speedtestRef.current = s;
-
-    // Configure to use the remote server endpoints
-    s.setParameter("url_dl", `${SPEEDTEST_SERVER}/garbage.php`);
-    s.setParameter("url_ul", `${SPEEDTEST_SERVER}/empty.php`);
-    s.setParameter("url_ping", `${SPEEDTEST_SERVER}/empty.php`);
-    s.setParameter("url_getIp", `${SPEEDTEST_SERVER}/getIP.php`);
-    s.setParameter("test_order", "IP_D_U");
-    s.setParameter("time_dl_max", 10);
-    s.setParameter("time_ul_max", 10);
-
-    s.onupdate = handleUpdate;
-    s.onend = handleEnd;
-
     setIsRunning(true);
-    s.start();
-  }, [handleUpdate, handleEnd]);
+
+    // Send start command to iframe
+    iframeRef.current?.contentWindow?.postMessage({ command: "start" }, SPEEDTEST_SERVER);
+  }, []);
 
   const stopTest = useCallback(() => {
-    if (speedtestRef.current) {
-      speedtestRef.current.abort();
-    }
+    iframeRef.current?.contentWindow?.postMessage({ command: "abort" }, SPEEDTEST_SERVER);
+    setIsRunning(false);
+    setTestState(-1);
+    setProgress(0);
   }, []);
 
   const getStatusText = () => {
@@ -152,6 +93,14 @@ const SpeedTest = () => {
 
   return (
     <div className="space-y-8">
+      {/* Hidden iframe for actual speed test */}
+      <iframe
+        ref={iframeRef}
+        src={`${SPEEDTEST_SERVER}/iframe.html`}
+        className="hidden"
+        title="Speed Test Engine"
+      />
+
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -162,7 +111,6 @@ const SpeedTest = () => {
         </div>
         <Button
           onClick={isRunning ? stopTest : startTest}
-          disabled={!isLoaded}
           variant={isRunning ? "destructive" : "default"}
           className="rounded-xl min-w-[140px]"
         >
@@ -238,14 +186,6 @@ const SpeedTest = () => {
           <p className="text-xs text-muted-foreground">ms</p>
         </div>
       </div>
-
-      {/* Loading State */}
-      {!isLoaded && (
-        <div className="text-center py-8">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Loading speed test...</p>
-        </div>
-      )}
     </div>
   );
 };
