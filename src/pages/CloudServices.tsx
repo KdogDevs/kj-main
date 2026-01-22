@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import StatusSection from "@/components/StatusSection";
 import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -60,6 +61,9 @@ const CloudServices = () => {
               Private cloud infrastructure powering services for the Jensen family.
             </p>
           </div>
+
+          {/* Status Section */}
+          <StatusSection />
 
           {/* Services Grid */}
           <section className="mb-24">
