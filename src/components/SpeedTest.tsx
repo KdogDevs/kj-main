@@ -23,6 +23,7 @@ const SpeedTest = () => {
   });
   const [currentTest, setCurrentTest] = useState<string>("");
   const [progress, setProgress] = useState(0);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
   const speedtestRef = useRef<any>(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ const SpeedTest = () => {
     script.async = true;
     script.onload = () => {
       console.log("LibreSpeed loaded");
+      setScriptLoaded(true);
     };
     script.onerror = () => {
       console.error("Failed to load LibreSpeed");
@@ -41,9 +43,15 @@ const SpeedTest = () => {
 
     return () => {
       if (speedtestRef.current) {
-        speedtestRef.current.abort();
+        try {
+          speedtestRef.current.abort();
+        } catch (e) {
+          // ignore
+        }
       }
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -57,18 +65,36 @@ const SpeedTest = () => {
     setStatus("running");
     setResults({ download: 0, upload: 0, ping: 0, jitter: 0 });
     setProgress(0);
+    setCurrentTest("Preparing...");
 
     const s = new (window as any).Speedtest();
     speedtestRef.current = s;
 
-    // Configure to use your server
-    s.setParameter("url_dl", `${SPEEDTEST_SERVER}/garbage.php`);
-    s.setParameter("url_ul", `${SPEEDTEST_SERVER}/empty.php`);
-    s.setParameter("url_ping", `${SPEEDTEST_SERVER}/empty.php`);
-    s.setParameter("url_getIp", `${SPEEDTEST_SERVER}/getIP.php`);
+    // Add server as a test point (single server mode)
+    s.addTestPoint({
+      name: "Kagen Cloud",
+      server: SPEEDTEST_SERVER + "/",
+      dlURL: "garbage.php",
+      ulURL: "empty.php",
+      pingURL: "empty.php",
+      getIpURL: "getIP.php"
+    });
+
+    // Select the server (required before starting)
+    s.setSelectedServer(s.getTestPoints()[0]);
 
     s.onupdate = (data: any) => {
-      setCurrentTest(data.testState === 1 ? "download" : data.testState === 3 ? "upload" : data.testState === 2 ? "ping" : "");
+      // testState: 0=not started, 1=download, 2=ping+jitter, 3=upload, 4=finished, 5=aborted
+      const stateNames: Record<number, string> = {
+        0: "Preparing...",
+        1: "download",
+        2: "ping",
+        3: "upload",
+        4: "",
+        5: "aborted"
+      };
+      
+      setCurrentTest(stateNames[data.testState] || "");
       
       if (data.dlStatus) {
         setResults(prev => ({ ...prev, download: parseFloat(data.dlStatus) || 0 }));
@@ -84,22 +110,31 @@ const SpeedTest = () => {
       }
 
       // Calculate progress based on test state
-      const stateProgress: Record<number, number> = { 1: 25, 2: 50, 3: 75, 4: 100 };
+      const stateProgress: Record<number, number> = { 0: 5, 1: 25, 2: 50, 3: 75, 4: 100, 5: 0 };
       setProgress(stateProgress[data.testState] || 0);
     };
 
-    s.onend = () => {
-      setStatus("finished");
-      setProgress(100);
+    s.onend = (aborted: boolean) => {
+      if (aborted) {
+        setStatus("idle");
+      } else {
+        setStatus("finished");
+        setProgress(100);
+      }
       setCurrentTest("");
     };
 
+    // Start the test
     s.start();
   };
 
   const resetTest = () => {
     if (speedtestRef.current) {
-      speedtestRef.current.abort();
+      try {
+        speedtestRef.current.abort();
+      } catch (e) {
+        // ignore
+      }
     }
     setStatus("idle");
     setResults({ download: 0, upload: 0, ping: 0, jitter: 0 });
@@ -144,11 +179,11 @@ const SpeedTest = () => {
       <div className="flex items-center gap-3">
         <Button
           onClick={startTest}
-          disabled={status === "running"}
+          disabled={status === "running" || !scriptLoaded}
           className="rounded-xl"
         >
           <Play className="w-4 h-4 mr-2" />
-          {status === "running" ? "Testing..." : "Start Test"}
+          {!scriptLoaded ? "Loading..." : status === "running" ? "Testing..." : "Start Test"}
         </Button>
         {(status === "running" || status === "finished") && (
           <Button
