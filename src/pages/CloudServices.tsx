@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import StatusSection from "@/components/StatusSection";
-import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink } from "lucide-react";
+import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const services = [
@@ -140,6 +140,37 @@ const CloudServices = () => {
             <div className="mt-8 p-4 rounded-xl bg-primary/10 border border-primary/20">
               <p className="text-sm text-muted-foreground">
                 <strong className="text-foreground">Need help?</strong> Reach out to Kagen for technical support or if you're having trouble accessing any services.
+              </p>
+            </div>
+          </section>
+
+          {/* Tools Section */}
+          <section className="mt-24">
+            <h2 className="text-2xl font-bold mb-8">Tools</h2>
+            
+            {/* Speed Test */}
+            <div className="rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/50 shadow-lg p-8 md:p-12">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                  <Gauge className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Speed Test</h3>
+                  <p className="text-sm text-muted-foreground">Test your connection speed to Kagen Cloud servers</p>
+                </div>
+              </div>
+              
+              <div className="rounded-2xl overflow-hidden border border-border/30 bg-background/30">
+                <iframe
+                  src="https://speed.kagen.dev/"
+                  title="Kagen Cloud Speed Test"
+                  className="w-full h-[500px] md:h-[600px]"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                />
+              </div>
+              
+              <p className="mt-4 text-sm text-muted-foreground">
+                This speed test measures your connection to our Atlanta-based servers. Results may vary based on your location and network conditions.
               </p>
             </div>
           </section>
