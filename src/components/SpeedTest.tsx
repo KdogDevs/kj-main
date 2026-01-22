@@ -12,7 +12,6 @@ interface NetworkInfo {
   region: string;
   country: string;
   isp: string;
-  dns: string[];
 }
 
 const SpeedTest = () => {
@@ -25,35 +24,17 @@ const SpeedTest = () => {
   useEffect(() => {
     const fetchNetworkInfo = async () => {
       try {
-        // Fetch IPv4, IPv6, and location info in parallel
-        const [ipv4Result, ipv6Result, locationResult, dnsResult] = await Promise.allSettled([
-          // IPv4
+        const [ipv4Result, ipv6Result, locationResult] = await Promise.allSettled([
           fetch("https://api.ipify.org?format=json").then(r => r.json()),
-          // IPv6 (may fail if not available)
           fetch("https://api64.ipify.org?format=json").then(r => r.json()),
-          // Location info
           fetch("https://ipapi.co/json/").then(r => r.json()),
-          // DNS leak test
-          fetch("https://www.cloudflare.com/cdn-cgi/trace").then(r => r.text()),
         ]);
 
         const ipv4 = ipv4Result.status === "fulfilled" ? ipv4Result.value.ip : null;
         const ipv6Raw = ipv6Result.status === "fulfilled" ? ipv6Result.value.ip : null;
-        // Only show IPv6 if it's different from IPv4 (api64 returns IPv4 if no IPv6)
         const ipv6 = ipv6Raw && ipv6Raw !== ipv4 && ipv6Raw.includes(":") ? ipv6Raw : null;
         
         const location = locationResult.status === "fulfilled" ? locationResult.value : {};
-        
-        // Parse DNS from Cloudflare trace (extracts resolver info)
-        let dns: string[] = [];
-        if (dnsResult.status === "fulfilled") {
-          // Cloudflare trace doesn't directly show DNS, but we can show the resolver location
-          const lines = dnsResult.value.split("\n");
-          const colo = lines.find((l: string) => l.startsWith("colo="))?.split("=")[1];
-          if (colo) {
-            dns.push(`Cloudflare ${colo}`);
-          }
-        }
 
         setNetworkInfo({
           ipv4,
@@ -62,7 +43,6 @@ const SpeedTest = () => {
           region: location.region || "",
           country: location.country_name || "Unknown",
           isp: location.org || "Unknown",
-          dns,
         });
       } catch (error) {
         console.error("Failed to fetch network info:", error);
@@ -93,69 +73,59 @@ const SpeedTest = () => {
     setIsRunning(false);
   };
 
-  const InfoRow = ({ icon: Icon, label, value, copyable = false }: { 
-    icon: any; 
-    label: string; 
-    value: string; 
-    copyable?: boolean;
-  }) => (
-    <div className="flex items-center gap-2">
-      <Icon className="w-4 h-4 text-primary flex-shrink-0" />
-      <span className="text-sm text-muted-foreground">{label}:</span>
-      <span className="text-sm font-medium text-foreground">{value}</span>
-      {copyable && value !== "Not available" && value !== "Loading..." && (
-        <button
-          onClick={() => copyToClipboard(value)}
-          className="p-1 hover:bg-muted rounded transition-colors"
-          title="Copy to clipboard"
-        >
-          {copiedIp === value ? (
-            <Check className="w-3 h-3 text-primary" />
-          ) : (
-            <Copy className="w-3 h-3 text-muted-foreground" />
-          )}
-        </button>
-      )}
-    </div>
-  );
+  const IpRow = ({ label, value }: { label: string; value: string | null }) => {
+    const displayValue = loading ? "Loading..." : value || "Not available";
+    const canCopy = !loading && value;
+
+    return (
+      <div className="flex items-center gap-2 min-w-0">
+        <Globe className="w-4 h-4 text-primary flex-shrink-0" />
+        <span className="text-sm text-muted-foreground flex-shrink-0">{label}:</span>
+        <span className="text-sm font-medium text-foreground truncate">{displayValue}</span>
+        {canCopy && (
+          <button
+            onClick={() => copyToClipboard(value)}
+            className="p-1 hover:bg-muted rounded transition-colors flex-shrink-0"
+            title="Copy to clipboard"
+          >
+            {copiedIp === value ? (
+              <Check className="w-3 h-3 text-primary" />
+            ) : (
+              <Copy className="w-3 h-3 text-muted-foreground" />
+            )}
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
       {/* Network Info */}
-      <div className="p-4 rounded-xl border border-border/30 bg-background/50 backdrop-blur-sm space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InfoRow 
-            icon={Globe} 
-            label="IPv4" 
-            value={loading ? "Loading..." : networkInfo?.ipv4 || "Not available"}
-            copyable
-          />
-          <InfoRow 
-            icon={Globe} 
-            label="IPv6" 
-            value={loading ? "Loading..." : networkInfo?.ipv6 || "Not available"}
-            copyable
-          />
+      <div className="p-4 rounded-xl border border-border/30 bg-background/50 backdrop-blur-sm space-y-3 overflow-hidden">
+        {/* IP Addresses */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+          <IpRow label="IPv4" value={networkInfo?.ipv4 ?? null} />
+          <IpRow label="IPv6" value={networkInfo?.ipv6 ?? null} />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InfoRow 
-            icon={MapPin} 
-            label="Location" 
-            value={loading ? "Loading..." : networkInfo ? `${networkInfo.city}, ${networkInfo.region}, ${networkInfo.country}` : "Unknown"}
-          />
-          <InfoRow 
-            icon={Server} 
-            label="ISP" 
-            value={loading ? "Loading..." : networkInfo?.isp || "Unknown"}
-          />
+        
+        {/* Location and ISP */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-2 min-w-0">
+            <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm text-muted-foreground flex-shrink-0">Location:</span>
+            <span className="text-sm font-medium text-foreground truncate">
+              {loading ? "Loading..." : networkInfo ? `${networkInfo.city}, ${networkInfo.region}, ${networkInfo.country}` : "Unknown"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <Server className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm text-muted-foreground flex-shrink-0">ISP:</span>
+            <span className="text-sm font-medium text-foreground truncate">
+              {loading ? "Loading..." : networkInfo?.isp || "Unknown"}
+            </span>
+          </div>
         </div>
-        {networkInfo?.dns && networkInfo.dns.length > 0 && (
-          <InfoRow 
-            icon={Server} 
-            label="DNS Resolver" 
-            value={networkInfo.dns.join(", ")}
-          />
-        )}
       </div>
 
       {/* Controls */}
