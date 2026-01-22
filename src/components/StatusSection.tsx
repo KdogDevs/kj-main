@@ -21,6 +21,8 @@ interface MonitorStatus {
 interface HeartbeatData {
   monitorID: number;
   status: number;
+  time: string; // ISO timestamp
+  msg?: string;
 }
 
 interface UptimeData {
@@ -30,6 +32,7 @@ interface UptimeData {
     monitorList: MonitorStatus[];
   }>;
   heartbeatList?: Record<string, HeartbeatData[]>;
+  uptimeList?: Record<string, number>; // e.g., "1_720" for 30-day uptime
 }
 
 const StatusSection = () => {
@@ -178,7 +181,79 @@ const StatusSection = () => {
     return { status: 1, text: "All systems operational", color: "text-green-500" };
   };
 
+  const getAverageUptime = () => {
+    if (!statusData?.uptimeList) return null;
+    
+    // uptimeList keys are like "1_720" meaning monitor 1's 720-hour (30-day) uptime
+    const uptimes30d = Object.entries(statusData.uptimeList)
+      .filter(([key]) => key.endsWith("_720"))
+      .map(([, value]) => value);
+    
+    if (uptimes30d.length === 0) return null;
+    
+    const average = uptimes30d.reduce((sum, val) => sum + val, 0) / uptimes30d.length;
+    return (average * 100).toFixed(1);
+  };
+
+  const getLastIncident = () => {
+    if (!statusData?.heartbeatList || !statusData?.publicGroupList) return null;
+    
+    // Build monitor name map
+    const monitorNames: Record<number, string> = {};
+    statusData.publicGroupList.forEach(group => {
+      (group.monitorList || []).forEach(m => {
+        monitorNames[m.id] = m.name;
+      });
+    });
+
+    // Find most recent down status across all monitors
+    let lastIncident: { name: string; time: Date; endTime?: Date } | null = null;
+
+    Object.entries(statusData.heartbeatList).forEach(([monitorId, heartbeats]) => {
+      const name = monitorNames[parseInt(monitorId)] || "Unknown";
+      
+      // Look for down periods (status = 0)
+      for (let i = heartbeats.length - 1; i >= 0; i--) {
+        if (heartbeats[i].status === 0) {
+          const downTime = new Date(heartbeats[i].time);
+          
+          // Find when it came back up
+          let endTime: Date | undefined;
+          for (let j = i + 1; j < heartbeats.length; j++) {
+            if (heartbeats[j].status === 1) {
+              endTime = new Date(heartbeats[j].time);
+              break;
+            }
+          }
+          
+          if (!lastIncident || downTime > lastIncident.time) {
+            lastIncident = { name, time: downTime, endTime };
+          }
+          break;
+        }
+      }
+    });
+
+    return lastIncident;
+  };
+
+  const formatIncidentTime = (incident: { name: string; time: Date; endTime?: Date }) => {
+    const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    const timeOptions: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
+    
+    const dateStr = incident.time.toLocaleDateString("en-US", options);
+    const startTime = incident.time.toLocaleTimeString("en-US", timeOptions);
+    
+    if (incident.endTime) {
+      const endTime = incident.endTime.toLocaleTimeString("en-US", timeOptions);
+      return `${incident.name} – ${dateStr}, ${startTime}–${endTime}`;
+    }
+    return `${incident.name} – ${dateStr}, ${startTime}`;
+  };
+
   const overall = getOverallStatus();
+  const averageUptime = getAverageUptime();
+  const lastIncident = getLastIncident();
 
   return (
     <section className="mb-24">
@@ -221,17 +296,23 @@ const StatusSection = () => {
         </div>
 
         {/* Uptime Stats */}
-        {!loading && !error && (
+        {!loading && !error && (averageUptime || lastIncident) && (
           <div className="px-6 py-4 border-b border-border/30 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span>
-              <span className="font-medium text-foreground">Past 30 days:</span>{" "}
-              99.9% uptime across all services.
-            </span>
-            <span className="hidden sm:inline text-border">•</span>
-            <span>
-              <span className="font-medium text-foreground">Last incident:</span>{" "}
-              Jellyfin maintenance – Jan 8, 10–10:15 PM
-            </span>
+            {averageUptime && (
+              <span>
+                <span className="font-medium text-foreground">Past 30 days:</span>{" "}
+                {averageUptime}% uptime across all services.
+              </span>
+            )}
+            {averageUptime && lastIncident && (
+              <span className="hidden sm:inline text-border">•</span>
+            )}
+            {lastIncident && (
+              <span>
+                <span className="font-medium text-foreground">Last incident:</span>{" "}
+                {formatIncidentTime(lastIncident)}
+              </span>
+            )}
           </div>
         )}
 
