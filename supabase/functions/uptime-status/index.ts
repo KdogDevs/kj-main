@@ -5,7 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const UPTIME_KUMA_STATUS_URL = "https://uptime.kagen.dev/api/status-page/cloud-services";
+const UPTIME_KUMA_BASE_URL = "https://uptime.kagen.dev/api/status-page";
+const STATUS_PAGE_SLUG = "cloud-services";
 
 serve(async (req: Request) => {
   // Handle CORS preflight
@@ -14,20 +15,30 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Fetch status from Uptime Kuma public API
-    const response = await fetch(UPTIME_KUMA_STATUS_URL, {
-      headers: {
-        "Accept": "application/json",
-      },
-    });
+    // Fetch both status page config and heartbeat data in parallel
+    const [statusResponse, heartbeatResponse] = await Promise.all([
+      fetch(`${UPTIME_KUMA_BASE_URL}/${STATUS_PAGE_SLUG}`, {
+        headers: { "Accept": "application/json" },
+      }),
+      fetch(`${UPTIME_KUMA_BASE_URL}/heartbeat/${STATUS_PAGE_SLUG}`, {
+        headers: { "Accept": "application/json" },
+      }),
+    ]);
 
-    if (!response.ok) {
-      throw new Error(`Uptime Kuma API error: ${response.status}`);
+    if (!statusResponse.ok) {
+      throw new Error(`Status API error: ${statusResponse.status}`);
     }
 
-    const data = await response.json();
+    const statusData = await statusResponse.json();
+    
+    // Merge heartbeat data if available
+    if (heartbeatResponse.ok) {
+      const heartbeatData = await heartbeatResponse.json();
+      statusData.heartbeatList = heartbeatData.heartbeatList;
+      statusData.uptimeList = heartbeatData.uptimeList;
+    }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(statusData), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
