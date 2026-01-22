@@ -1,6 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
-import shift2streamImg from "@/assets/project-shift2stream.png";
-import schedulespxImg from "@/assets/project-schedulespx.png";
+import { getAssetUrl, ASSETS } from "@/lib/storage";
+
+const shift2streamImg = getAssetUrl(ASSETS.projectShift2stream);
+const schedulespxImg = getAssetUrl(ASSETS.projectSchedulespx);
 
 const projects = [
   {
