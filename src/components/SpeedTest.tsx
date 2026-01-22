@@ -129,7 +129,7 @@ const SpeedTest = () => {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3">
         <Button
           onClick={startTest}
           disabled={isRunning}
@@ -145,7 +145,7 @@ const SpeedTest = () => {
             className="rounded-xl"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Reset
+            Stop
           </Button>
         )}
       </div>
