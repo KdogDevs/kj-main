@@ -11,10 +11,10 @@ interface SpeedTestResults {
   jitter: number;
 }
 
-type TestStatus = "idle" | "running" | "finished" | "error";
+type TestStatus = "idle" | "loading" | "ready" | "running" | "finished" | "error";
 
 const SpeedTest = () => {
-  const [status, setStatus] = useState<TestStatus>("idle");
+  const [status, setStatus] = useState<TestStatus>("loading");
   const [results, setResults] = useState<SpeedTestResults>({
     download: 0,
     upload: 0,
@@ -23,23 +23,50 @@ const SpeedTest = () => {
   });
   const [currentTest, setCurrentTest] = useState<string>("");
   const [progress, setProgress] = useState(0);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const workerBlobUrl = useRef<string | null>(null);
   const speedtestRef = useRef<any>(null);
 
   useEffect(() => {
-    // Load LibreSpeed script
-    const script = document.createElement("script");
-    script.src = `${SPEEDTEST_SERVER}/speedtest.js`;
-    script.async = true;
-    script.onload = () => {
-      console.log("LibreSpeed loaded");
-      setScriptLoaded(true);
+    const loadSpeedTest = async () => {
+      try {
+        // Load the main speedtest.js script
+        const scriptResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest.js`);
+        if (!scriptResponse.ok) throw new Error("Failed to load speedtest.js");
+        const scriptText = await scriptResponse.text();
+        
+        // Load the worker script and create a blob URL
+        const workerResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest_worker.js`);
+        if (!workerResponse.ok) throw new Error("Failed to load speedtest_worker.js");
+        const workerText = await workerResponse.text();
+        
+        // Create blob URL for worker (bypasses same-origin restriction)
+        const workerBlob = new Blob([workerText], { type: "application/javascript" });
+        workerBlobUrl.current = URL.createObjectURL(workerBlob);
+        
+        // Execute the main script
+        const scriptBlob = new Blob([scriptText], { type: "application/javascript" });
+        const scriptUrl = URL.createObjectURL(scriptBlob);
+        const script = document.createElement("script");
+        script.src = scriptUrl;
+        script.onload = () => {
+          console.log("LibreSpeed loaded");
+          URL.revokeObjectURL(scriptUrl);
+          setStatus("ready");
+        };
+        script.onerror = () => {
+          throw new Error("Failed to execute speedtest.js");
+        };
+        document.body.appendChild(script);
+        
+      } catch (error) {
+        console.error("Failed to load LibreSpeed:", error);
+        setErrorMsg(error instanceof Error ? error.message : "Failed to load speed test");
+        setStatus("error");
+      }
     };
-    script.onerror = () => {
-      console.error("Failed to load LibreSpeed");
-      setStatus("error");
-    };
-    document.body.appendChild(script);
+    
+    loadSpeedTest();
 
     return () => {
       if (speedtestRef.current) {
@@ -49,8 +76,8 @@ const SpeedTest = () => {
           // ignore
         }
       }
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+      if (workerBlobUrl.current) {
+        URL.revokeObjectURL(workerBlobUrl.current);
       }
     };
   }, []);
@@ -59,6 +86,14 @@ const SpeedTest = () => {
     if (!(window as any).Speedtest) {
       console.error("Speedtest not loaded");
       setStatus("error");
+      setErrorMsg("Speed test library not loaded");
+      return;
+    }
+
+    if (!workerBlobUrl.current) {
+      console.error("Worker not loaded");
+      setStatus("error");
+      setErrorMsg("Speed test worker not loaded");
       return;
     }
 
@@ -70,23 +105,66 @@ const SpeedTest = () => {
     const s = new (window as any).Speedtest();
     speedtestRef.current = s;
 
-    // Add server as a test point (single server mode)
-    s.addTestPoint({
-      name: "Kagen Cloud",
-      server: SPEEDTEST_SERVER + "/",
-      dlURL: "garbage.php",
-      ulURL: "empty.php",
-      pingURL: "empty.php",
-      getIpURL: "getIP.php"
-    });
+    // Patch the start method to use our blob worker URL
+    const originalStart = s.start;
+    s.start = function() {
+      if (this._state == 3) throw "Test already running";
+      
+      // Create worker from our blob URL instead of relative path
+      this.worker = new Worker(workerBlobUrl.current!);
+      
+      this.worker.onmessage = function(e: MessageEvent) {
+        if (e.data === this._prevData) return;
+        else this._prevData = e.data;
+        const data = JSON.parse(e.data);
+        try {
+          if (this.onupdate) this.onupdate(data);
+        } catch (err) {
+          console.error("Speedtest onupdate event threw exception: " + err);
+        }
+        if (data.testState >= 4) {
+          clearInterval(this.updater);
+          this._state = 4;
+          try {
+            if (this.onend) this.onend(data.testState == 5);
+          } catch (err) {
+            console.error("Speedtest onend event threw exception: " + err);
+          }
+        }
+      }.bind(this);
 
-    // Select the server (required before starting)
-    s.setSelectedServer(s.getTestPoints()[0]);
+      this.updater = setInterval(
+        function() {
+          this.worker.postMessage("status");
+        }.bind(this),
+        200
+      );
+
+      if (this._state == 1)
+        throw "When using multiple points of test, you must call selectServer before starting the test";
+      
+      if (this._state == 2) {
+        this._settings.url_dl = this._selectedServer.server + this._selectedServer.dlURL;
+        this._settings.url_ul = this._selectedServer.server + this._selectedServer.ulURL;
+        this._settings.url_ping = this._selectedServer.server + this._selectedServer.pingURL;
+        this._settings.url_getIp = this._selectedServer.server + this._selectedServer.getIpURL;
+      }
+
+      this._state = 3;
+      this.worker.postMessage("start " + JSON.stringify(this._settings));
+    };
+
+    // Configure for single-server mode using setParameter (stays in state 0)
+    s.setParameter("url_dl", `${SPEEDTEST_SERVER}/garbage.php`);
+    s.setParameter("url_ul", `${SPEEDTEST_SERVER}/empty.php`);
+    s.setParameter("url_ping", `${SPEEDTEST_SERVER}/empty.php`);
+    s.setParameter("url_getIp", `${SPEEDTEST_SERVER}/getIP.php`);
 
     s.onupdate = (data: any) => {
-      // testState: 0=not started, 1=download, 2=ping+jitter, 3=upload, 4=finished, 5=aborted
+      // testState: -1=not started, 0=starting, 1=download, 2=ping+jitter, 3=upload, 4=finished, 5=aborted
       const stateNames: Record<number, string> = {
-        0: "Preparing...",
+        [-1]: "Preparing...",
+        0: "Starting...",
         1: "download",
         2: "ping",
         3: "upload",
@@ -109,14 +187,17 @@ const SpeedTest = () => {
         setResults(prev => ({ ...prev, jitter: parseFloat(data.jitterStatus) || 0 }));
       }
 
-      // Calculate progress based on test state
-      const stateProgress: Record<number, number> = { 0: 5, 1: 25, 2: 50, 3: 75, 4: 100, 5: 0 };
-      setProgress(stateProgress[data.testState] || 0);
+      // Calculate progress based on individual test progress
+      const dlProg = data.dlProgress || 0;
+      const pingProg = data.pingProgress || 0;
+      const ulProg = data.ulProgress || 0;
+      const totalProgress = ((dlProg + pingProg + ulProg) / 3) * 100;
+      setProgress(Math.round(totalProgress));
     };
 
     s.onend = (aborted: boolean) => {
       if (aborted) {
-        setStatus("idle");
+        setStatus("ready");
       } else {
         setStatus("finished");
         setProgress(100);
@@ -136,7 +217,7 @@ const SpeedTest = () => {
         // ignore
       }
     }
-    setStatus("idle");
+    setStatus("ready");
     setResults({ download: 0, upload: 0, ping: 0, jitter: 0 });
     setProgress(0);
     setCurrentTest("");
@@ -179,11 +260,11 @@ const SpeedTest = () => {
       <div className="flex items-center gap-3">
         <Button
           onClick={startTest}
-          disabled={status === "running" || !scriptLoaded}
+          disabled={status === "running" || status === "loading"}
           className="rounded-xl"
         >
           <Play className="w-4 h-4 mr-2" />
-          {!scriptLoaded ? "Loading..." : status === "running" ? "Testing..." : "Start Test"}
+          {status === "loading" ? "Loading..." : status === "running" ? "Testing..." : "Start Test"}
         </Button>
         {(status === "running" || status === "finished") && (
           <Button
@@ -246,7 +327,7 @@ const SpeedTest = () => {
 
       {status === "error" && (
         <p className="text-sm text-destructive text-center">
-          Failed to load speed test. Please check that the server is accessible.
+          {errorMsg || "Failed to load speed test. Please check that the server is accessible."}
         </p>
       )}
 
