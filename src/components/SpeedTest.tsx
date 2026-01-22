@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, RotateCcw, Globe, MapPin, Server, Copy, Check } from "lucide-react";
+import { Play, Square, Globe, MapPin, Server, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -144,7 +144,7 @@ const SpeedTest = () => {
             variant="outline"
             className="rounded-xl"
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <Square className="w-4 h-4 mr-2" />
             Stop
           </Button>
         )}
