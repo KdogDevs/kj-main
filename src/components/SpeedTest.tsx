@@ -22,15 +22,16 @@ const SpeedTest = () => {
     // Fetch user's IP and location
     const fetchIpInfo = async () => {
       try {
-        const response = await fetch("https://ip-api.com/json/?fields=query,city,regionName,country,isp");
+        // Using ipapi.co which supports HTTPS for free
+        const response = await fetch("https://ipapi.co/json/");
         if (response.ok) {
           const data = await response.json();
           setIpInfo({
-            ip: data.query,
+            ip: data.ip,
             city: data.city,
-            region: data.regionName,
-            country: data.country,
-            isp: data.isp,
+            region: data.region,
+            country: data.country_name,
+            isp: data.org,
           });
         }
       } catch (error) {
