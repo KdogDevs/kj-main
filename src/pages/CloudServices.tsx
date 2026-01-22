@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import StatusSection from "@/components/StatusSection";
+import SpeedTest from "@/components/SpeedTest";
 import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -150,7 +151,7 @@ const CloudServices = () => {
             
             {/* Speed Test */}
             <div className="rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/50 shadow-lg p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-8">
                 <div className="w-12 h-12 rounded-xl bg-background/50 backdrop-blur-sm flex items-center justify-center">
                   <Gauge className="w-6 h-6" />
                 </div>
@@ -160,16 +161,9 @@ const CloudServices = () => {
                 </div>
               </div>
               
-              <div className="rounded-2xl overflow-hidden border border-border/30 bg-background/30">
-                <iframe
-                  src="https://speed.kagen.dev/"
-                  title="Kagen Cloud Speed Test"
-                  className="w-full h-[500px] md:h-[600px]"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-                />
-              </div>
+              <SpeedTest />
               
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="mt-6 text-sm text-muted-foreground">
                 This speed test measures your connection to our Atlanta-based servers. Results may vary based on your location and network conditions.
               </p>
             </div>
