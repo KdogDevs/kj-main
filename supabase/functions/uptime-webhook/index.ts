@@ -16,6 +16,16 @@ interface UptimeKumaWebhook {
   msg?: string;
 }
 
+// HTML entity encoding to prevent XSS in email templates
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 serve(async (req: Request) => {
   // Only accept POST requests for webhooks
   if (req.method !== "POST") {
@@ -49,7 +59,9 @@ serve(async (req: Request) => {
     const payload: UptimeKumaWebhook = await req.json();
     console.log("Received webhook:", JSON.stringify(payload));
 
-    const monitorName = payload.monitor?.name || "Unknown Service";
+    // Sanitize webhook data to prevent XSS in email templates
+    const rawMonitorName = payload.monitor?.name || "Unknown Service";
+    const monitorName = escapeHtml(rawMonitorName);
     const monitorType = payload.monitor?.type;
     const status = payload.heartbeat?.status;
     const isDown = status === 0;
