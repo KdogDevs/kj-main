@@ -108,14 +108,16 @@ serve(async (req: Request) => {
       </div>
     `;
 
-    // Use Deno's smtp client
+    // Use Deno's smtp client with STARTTLS
     const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
     
+    const port = parseInt(smtpPort);
     const client = new SMTPClient({
       connection: {
         hostname: smtpHost,
-        port: parseInt(smtpPort),
-        tls: true,
+        port: port,
+        // Use STARTTLS for port 587, direct TLS for 465
+        tls: port === 465,
         auth: {
           username: smtpUser,
           password: smtpPass,
