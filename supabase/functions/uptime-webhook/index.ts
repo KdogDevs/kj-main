@@ -16,6 +16,7 @@ interface UptimeKumaWebhook {
   monitor?: {
     name: string;
     url?: string;
+    type?: string; // "group" for parent monitors, other types for individual services
   };
   msg?: string;
 }
@@ -43,14 +44,23 @@ serve(async (req: Request) => {
     console.log("Received webhook:", JSON.stringify(payload));
 
     const monitorName = payload.monitor?.name || "Unknown Service";
+    const monitorType = payload.monitor?.type;
     const status = payload.heartbeat?.status;
-    const message = payload.heartbeat?.msg || payload.msg || "";
     const isDown = status === 0;
 
-    // Only notify on status changes (down events primarily)
+    // Skip if no status change or if this is a group monitor (only notify for individual services)
     if (status === undefined) {
       return new Response(
         JSON.stringify({ message: "No status change to report" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Skip group monitors - only send emails for individual service changes
+    if (monitorType === "group") {
+      console.log(`Skipping group monitor notification for: ${monitorName}`);
+      return new Response(
+        JSON.stringify({ message: "Group monitor status ignored" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -96,7 +106,27 @@ serve(async (req: Request) => {
     const statusText = isDown ? "DOWN" : "OPERATIONAL";
     const statusEmoji = isDown ? "🔴" : "🟢";
     const subject = `${statusEmoji} ${monitorName} is ${statusText}`;
-    const timestamp = payload.heartbeat?.time || new Date().toISOString();
+    
+    // Format timestamp as "22 January 2026 at 3:45:07 PM"
+    const rawTime = payload.heartbeat?.time || new Date().toISOString();
+    const dateObj = new Date(rawTime);
+    const formattedDate = dateObj.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+    const formattedTime = dateObj.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+    const timestamp = `${formattedDate} at ${formattedTime}`;
+    
+    // Custom message based on status
+    const statusMessage = isDown 
+      ? "This service is currently experiencing issues. Kagen is working to restore services as soon as possible."
+      : "This service has been restored and is now operational.";
     
     const htmlBody = `
 <!DOCTYPE html>
@@ -145,8 +175,8 @@ serve(async (req: Request) => {
               <table role="presentation" style="width: 100%; background: rgba(255,255,255,0.04); border-radius: 12px;">
                 <tr>
                   <td style="padding: 20px;">
-                    <p style="margin: 0 0 12px; font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Details</p>
-                    <p style="margin: 0 0 16px; font-size: 15px; color: rgba(255,255,255,0.8); line-height: 1.5;">${message || 'No additional details available.'}</p>
+                    <p style="margin: 0 0 12px; font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Status Update</p>
+                    <p style="margin: 0 0 16px; font-size: 15px; color: rgba(255,255,255,0.8); line-height: 1.5;">${statusMessage}</p>
                     <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.4);">
                       <span style="display: inline-block; margin-right: 8px;">🕐</span>${timestamp}
                     </p>
