@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import CloudServices from "./pages/CloudServices";
 import Contact from "./pages/Contact";
+import SetupAssets from "./pages/SetupAssets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/cloud-services" element={<CloudServices />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/setup-assets" element={<SetupAssets />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
