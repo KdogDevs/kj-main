@@ -30,19 +30,30 @@ const SpeedTest = () => {
   useEffect(() => {
     const loadSpeedTest = async () => {
       try {
+        console.log("Loading speedtest.js from", SPEEDTEST_SERVER);
+        
         // Load the main speedtest.js script
-        const scriptResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest.js`);
-        if (!scriptResponse.ok) throw new Error("Failed to load speedtest.js");
+        const scriptResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest.js`, {
+          mode: 'cors'
+        });
+        console.log("speedtest.js response:", scriptResponse.status, scriptResponse.ok);
+        if (!scriptResponse.ok) throw new Error(`Failed to load speedtest.js: ${scriptResponse.status}`);
         const scriptText = await scriptResponse.text();
+        console.log("speedtest.js loaded, length:", scriptText.length);
         
         // Load the worker script and create a blob URL
-        const workerResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest_worker.js`);
-        if (!workerResponse.ok) throw new Error("Failed to load speedtest_worker.js");
+        const workerResponse = await fetch(`${SPEEDTEST_SERVER}/speedtest_worker.js`, {
+          mode: 'cors'
+        });
+        console.log("speedtest_worker.js response:", workerResponse.status, workerResponse.ok);
+        if (!workerResponse.ok) throw new Error(`Failed to load speedtest_worker.js: ${workerResponse.status}`);
         const workerText = await workerResponse.text();
+        console.log("speedtest_worker.js loaded, length:", workerText.length);
         
         // Create blob URL for worker (bypasses same-origin restriction)
         const workerBlob = new Blob([workerText], { type: "application/javascript" });
         workerBlobUrl.current = URL.createObjectURL(workerBlob);
+        console.log("Worker blob URL created:", workerBlobUrl.current);
         
         // Execute the main script
         const scriptBlob = new Blob([scriptText], { type: "application/javascript" });
@@ -50,11 +61,12 @@ const SpeedTest = () => {
         const script = document.createElement("script");
         script.src = scriptUrl;
         script.onload = () => {
-          console.log("LibreSpeed loaded");
+          console.log("LibreSpeed script executed, Speedtest available:", !!(window as any).Speedtest);
           URL.revokeObjectURL(scriptUrl);
           setStatus("ready");
         };
-        script.onerror = () => {
+        script.onerror = (e) => {
+          console.error("Script execution error:", e);
           throw new Error("Failed to execute speedtest.js");
         };
         document.body.appendChild(script);
