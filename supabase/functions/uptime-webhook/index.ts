@@ -2,11 +2,6 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import nodemailer from "npm:nodemailer@6.9.9";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
 interface UptimeKumaWebhook {
   heartbeat?: {
     status: number; // 0 = down, 1 = up
@@ -22,21 +17,32 @@ interface UptimeKumaWebhook {
 }
 
 serve(async (req: Request) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  // Only accept POST requests for webhooks
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   try {
-    // Verify webhook secret (optional but recommended)
+    // Verify webhook secret (required for security)
     const authHeader = req.headers.get("Authorization");
     const expectedKey = Deno.env.get("UPTIME_KUMA_API_KEY");
     
-    if (expectedKey && authHeader !== `Bearer ${expectedKey}`) {
-      console.log("Unauthorized webhook attempt");
+    if (!expectedKey) {
+      console.error("UPTIME_KUMA_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Webhook not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (authHeader !== `Bearer ${expectedKey}`) {
+      console.warn("Unauthorized webhook attempt");
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -52,7 +58,7 @@ serve(async (req: Request) => {
     if (status === undefined) {
       return new Response(
         JSON.stringify({ message: "No status change to report" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -61,7 +67,7 @@ serve(async (req: Request) => {
       console.log(`Skipping group monitor notification for: ${monitorName}`);
       return new Response(
         JSON.stringify({ message: "Group monitor status ignored" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -73,18 +79,18 @@ serve(async (req: Request) => {
 
     const { data: subscribers, error: fetchError } = await supabase
       .from("uptime_subscriptions")
-      .select("email");
+      .select("email, unsubscribe_token");
 
     if (fetchError) {
       console.error("Error fetching subscribers:", fetchError);
-      throw fetchError;
+      throw new Error("Failed to fetch subscribers");
     }
 
     if (!subscribers || subscribers.length === 0) {
       console.log("No subscribers to notify");
       return new Response(
         JSON.stringify({ message: "No subscribers" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -98,8 +104,8 @@ serve(async (req: Request) => {
     if (!smtpHost || !smtpUser || !smtpPass) {
       console.error("SMTP not configured");
       return new Response(
-        JSON.stringify({ error: "SMTP not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Email service not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -127,8 +133,27 @@ serve(async (req: Request) => {
     const statusMessage = isDown 
       ? "This service is currently experiencing issues. Kagen is working to restore services as soon as possible."
       : "This service has been restored and is now operational.";
-    
-    const htmlBody = `
+
+    // Create nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports (STARTTLS)
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    let sentCount = 0;
+    const errors: string[] = [];
+
+    for (const subscriber of subscribers) {
+      try {
+        // Generate personalized unsubscribe link with token
+        const unsubscribeLink = `https://kj-main.lovable.app/cloud-services?unsubscribe=${subscriber.unsubscribe_token}`;
+        
+        const htmlBody = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -204,7 +229,7 @@ serve(async (req: Request) => {
             <td style="padding: 24px 32px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05);">
               <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.35); text-align: center; line-height: 1.6;">
                 You're receiving this because you subscribed to Kagen Cloud status alerts.<br>
-                <a href="https://kj-main.lovable.app/cloud-services" style="color: rgba(255,255,255,0.5); text-decoration: underline;">Manage Preferences</a>
+                <a href="${unsubscribeLink}" style="color: rgba(255,255,255,0.5); text-decoration: underline;">Unsubscribe</a>
               </p>
             </td>
           </tr>
@@ -214,24 +239,8 @@ serve(async (req: Request) => {
   </table>
 </body>
 </html>
-    `;
+        `;
 
-    // Create nodemailer transporter
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465, // true for 465, false for other ports (STARTTLS)
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    let sentCount = 0;
-    const errors: string[] = [];
-
-    for (const subscriber of subscribers) {
-      try {
         await transporter.sendMail({
           from: smtpFrom,
           to: subscriber.email,
@@ -251,14 +260,14 @@ serve(async (req: Request) => {
         message: `Notified ${sentCount} subscribers`,
         errors: errors.length > 0 ? errors : undefined 
       }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
 
   } catch (error: any) {
     console.error("Webhook error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify({ error: "An error occurred processing the webhook" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 });

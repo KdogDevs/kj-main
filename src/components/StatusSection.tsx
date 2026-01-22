@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Activity, CheckCircle, AlertTriangle, XCircle, ExternalLink, Bell, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ interface UptimeData {
 }
 
 const StatusSection = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [statusData, setStatusData] = useState<UptimeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,38 @@ const StatusSection = () => {
       if (isInitial) setLoading(false);
     }
   };
+
+  // Handle token-based unsubscribe from email link
+  useEffect(() => {
+    const unsubscribeToken = searchParams.get("unsubscribe");
+    if (unsubscribeToken) {
+      const handleTokenUnsubscribe = async () => {
+        try {
+          const { error } = await supabase.functions.invoke("uptime-unsubscribe", {
+            body: { token: unsubscribeToken },
+          });
+
+          if (error) throw error;
+
+          toast({
+            title: "Unsubscribed",
+            description: "You will no longer receive status notifications.",
+          });
+        } catch (err: any) {
+          toast({
+            variant: "destructive",
+            title: "Unsubscribe failed",
+            description: "Invalid or expired unsubscribe link.",
+          });
+        } finally {
+          // Remove the token from URL
+          searchParams.delete("unsubscribe");
+          setSearchParams(searchParams, { replace: true });
+        }
+      };
+      handleTokenUnsubscribe();
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   useEffect(() => {
     fetchStatus(true);

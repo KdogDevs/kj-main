@@ -26,7 +26,8 @@ serve(async (req: Request) => {
     ]);
 
     if (!statusResponse.ok) {
-      throw new Error(`Status API error: ${statusResponse.status}`);
+      console.error(`Status API error: ${statusResponse.status}`);
+      throw new Error("Failed to fetch status");
     }
 
     const statusData = await statusResponse.json();
@@ -48,7 +49,7 @@ serve(async (req: Request) => {
   } catch (error: any) {
     console.error("Error fetching uptime status:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Unable to fetch status. Please try again later." }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
