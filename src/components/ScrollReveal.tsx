@@ -1,5 +1,6 @@
 import { motion, Variants } from "framer-motion";
 import { ReactNode } from "react";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 
 type AnimationType = "fade" | "slide-up" | "slide-left" | "slide-right" | "scale" | "blur" | "flip";
 
@@ -44,6 +45,38 @@ const animations: Record<AnimationType, Variants> = {
   },
 };
 
+// Simplified animations for mobile
+const mobileAnimations: Record<AnimationType, Variants> = {
+  fade: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  },
+  "slide-up": {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 },
+  },
+  "slide-left": {
+    hidden: { opacity: 0, x: 30 },
+    visible: { opacity: 1, x: 0 },
+  },
+  "slide-right": {
+    hidden: { opacity: 0, x: -30 },
+    visible: { opacity: 1, x: 0 },
+  },
+  scale: {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1 },
+  },
+  blur: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  },
+  flip: {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  },
+};
+
 const ScrollReveal = ({
   children,
   className = "",
@@ -53,16 +86,22 @@ const ScrollReveal = ({
   once = true,
   amount = 0.2,
 }: ScrollRevealProps) => {
+  const { shouldReduceMotion } = useAnimationConfig();
+  
+  const selectedAnimations = shouldReduceMotion ? mobileAnimations : animations;
+  const actualDuration = shouldReduceMotion ? Math.min(duration, 0.4) : duration;
+  const actualDelay = shouldReduceMotion ? Math.min(delay, 0.2) : delay;
+
   return (
     <motion.div
       className={className}
-      variants={animations[animation]}
+      variants={selectedAnimations[animation]}
       initial="hidden"
       whileInView="visible"
       viewport={{ once, amount }}
       transition={{
-        duration,
-        delay,
+        duration: actualDuration,
+        delay: actualDelay,
         ease: [0.25, 0.1, 0.25, 1],
       }}
     >
@@ -82,6 +121,9 @@ export const StaggerContainer = ({
   staggerDelay?: number;
   once?: boolean;
 }) => {
+  const { shouldReduceMotion } = useAnimationConfig();
+  const actualStagger = shouldReduceMotion ? Math.min(staggerDelay, 0.05) : staggerDelay;
+
   return (
     <motion.div
       className={className}
@@ -92,7 +134,7 @@ export const StaggerContainer = ({
         hidden: {},
         visible: {
           transition: {
-            staggerChildren: staggerDelay,
+            staggerChildren: actualStagger,
           },
         },
       }}
@@ -111,12 +153,15 @@ export const StaggerItem = ({
   className?: string;
   animation?: AnimationType;
 }) => {
+  const { shouldReduceMotion } = useAnimationConfig();
+  const selectedAnimations = shouldReduceMotion ? mobileAnimations : animations;
+
   return (
     <motion.div
       className={className}
-      variants={animations[animation]}
+      variants={selectedAnimations[animation]}
       transition={{
-        duration: 0.5,
+        duration: shouldReduceMotion ? 0.3 : 0.5,
         ease: [0.25, 0.1, 0.25, 1],
       }}
     >

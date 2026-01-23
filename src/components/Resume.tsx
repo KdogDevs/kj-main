@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "./ScrollReveal";
 import MagneticButton from "./MagneticButton";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 
 const experience = [
   {
@@ -38,6 +39,8 @@ const technicalExperience = [
 ];
 
 const Resume = () => {
+  const { isMobile, shouldReduceMotion } = useAnimationConfig();
+
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = '/Kagen_Jensen_Resume.pdf';
@@ -51,10 +54,10 @@ const Resume = () => {
     <section id="resume" className="py-24 px-6 md:px-12 lg:px-24">
       <motion.div 
         className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg"
-        initial={{ opacity: 0, y: 60, scale: 0.95 }}
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        initial={{ opacity: 0, y: shouldReduceMotion ? 30 : 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: shouldReduceMotion ? 0.4 : 0.8, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <ScrollReveal animation="slide-right">
@@ -64,18 +67,28 @@ const Resume = () => {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: shouldReduceMotion ? 0.1 : 0.3 }}
           >
-            <MagneticButton
-              onClick={handleDownload}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-xl font-mono"
-            >
-              <Download className="w-4 h-4" />
-              DOWNLOAD PDF
-            </MagneticButton>
+            {isMobile ? (
+              <Button
+                onClick={handleDownload}
+                className="font-mono text-sm gap-2"
+              >
+                <Download className="w-4 h-4" />
+                DOWNLOAD PDF
+              </Button>
+            ) : (
+              <MagneticButton
+                onClick={handleDownload}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-xl font-mono"
+              >
+                <Download className="w-4 h-4" />
+                DOWNLOAD PDF
+              </MagneticButton>
+            )}
           </motion.div>
         </div>
-        <ScrollReveal animation="blur" delay={0.2}>
+        <ScrollReveal animation="fade" delay={0.1}>
           <p className="text-muted-foreground font-mono mb-16">
             Kagen Jensen • kagen@kagen.dev • +1(678)-200-3197
           </p>
@@ -90,12 +103,12 @@ const Resume = () => {
                   WORK EXPERIENCE
                 </h3>
               </ScrollReveal>
-              <StaggerContainer staggerDelay={0.15} className="space-y-6">
+              <StaggerContainer staggerDelay={0.1} className="space-y-6">
                 {experience.map((exp, index) => (
                   <StaggerItem key={index}>
                     <motion.div 
                       className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
-                      whileHover={{ 
+                      whileHover={isMobile ? {} : { 
                         scale: 1.02, 
                         boxShadow: "0 10px 30px -10px hsl(var(--primary) / 0.1)" 
                       }}
@@ -121,12 +134,12 @@ const Resume = () => {
                   TECHNICAL EXPERIENCE
                 </h3>
               </ScrollReveal>
-              <StaggerContainer staggerDelay={0.1} className="space-y-3">
+              <StaggerContainer staggerDelay={0.05} className="space-y-3">
                 {technicalExperience.map((item, index) => (
                   <StaggerItem key={index}>
                     <motion.div
                       className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-4 text-muted-foreground"
-                      whileHover={{ 
+                      whileHover={isMobile ? {} : { 
                         x: 10,
                         backgroundColor: "hsl(var(--accent) / 0.5)"
                       }}
@@ -147,12 +160,12 @@ const Resume = () => {
                 EDUCATION
               </h3>
             </ScrollReveal>
-            <StaggerContainer staggerDelay={0.15} className="space-y-6">
+            <StaggerContainer staggerDelay={0.1} className="space-y-6">
               {education.map((edu, index) => (
                 <StaggerItem key={index}>
                   <motion.div 
                     className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
-                    whileHover={{ 
+                    whileHover={isMobile ? {} : { 
                       scale: 1.02, 
                       boxShadow: "0 10px 30px -10px hsl(var(--primary) / 0.1)" 
                     }}

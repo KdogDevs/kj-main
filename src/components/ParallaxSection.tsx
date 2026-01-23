@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ReactNode, useRef } from "react";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 
 interface ParallaxSectionProps {
   children: ReactNode;
@@ -15,14 +16,21 @@ const ParallaxSection = ({
   direction = "up",
 }: ParallaxSectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { shouldReduceMotion } = useAnimationConfig();
   
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
+  // Reduce parallax effect on mobile
+  const actualSpeed = shouldReduceMotion ? speed * 0.3 : speed;
   const multiplier = direction === "up" ? -1 : 1;
-  const y = useTransform(scrollYProgress, [0, 1], [100 * speed * multiplier, -100 * speed * multiplier]);
+  const y = useTransform(scrollYProgress, [0, 1], [100 * actualSpeed * multiplier, -100 * actualSpeed * multiplier]);
+
+  if (shouldReduceMotion) {
+    return <div ref={ref} className={className}>{children}</div>;
+  }
 
   return (
     <motion.div ref={ref} className={className} style={{ y }}>
@@ -43,14 +51,24 @@ export const ParallaxImage = ({
   speed?: number;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { shouldReduceMotion } = useAnimationConfig();
   
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [-30 * speed, 30 * speed]);
+  const actualSpeed = shouldReduceMotion ? 0 : speed;
+  const y = useTransform(scrollYProgress, [0, 1], [-30 * actualSpeed, 30 * actualSpeed]);
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1, 1.1]);
+
+  if (shouldReduceMotion) {
+    return (
+      <div ref={ref} className={`overflow-hidden ${className}`}>
+        <img src={src} alt={alt} className="w-full h-full object-cover" />
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className={`overflow-hidden ${className}`}>
@@ -75,6 +93,12 @@ export const FloatingElement = ({
   duration?: number;
   distance?: number;
 }) => {
+  const { shouldReduceMotion } = useAnimationConfig();
+  
+  if (shouldReduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
