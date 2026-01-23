@@ -1,5 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ReactNode, useRef } from "react";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 
 interface TiltCard3DProps {
   children: ReactNode;
@@ -17,18 +18,23 @@ const TiltCard3D = ({
   perspective = 1000,
 }: TiltCard3DProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { disableMouseEffects, shouldReduceMotion } = useAnimationConfig();
   
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   
-  const springConfig = { damping: 20, stiffness: 300 };
+  // Lighter spring for mobile
+  const springConfig = shouldReduceMotion 
+    ? { damping: 30, stiffness: 400 } 
+    : { damping: 20, stiffness: 300 };
+  
   const xSpring = useSpring(x, springConfig);
   const ySpring = useSpring(y, springConfig);
   
-  const rotateX = useTransform(ySpring, [-0.5, 0.5], [intensity, -intensity]);
-  const rotateY = useTransform(xSpring, [-0.5, 0.5], [-intensity, intensity]);
+  const actualIntensity = shouldReduceMotion ? intensity * 0.5 : intensity;
+  const rotateX = useTransform(ySpring, [-0.5, 0.5], [actualIntensity, -actualIntensity]);
+  const rotateY = useTransform(xSpring, [-0.5, 0.5], [-actualIntensity, actualIntensity]);
   
-  // Glare effect
   const glareX = useTransform(xSpring, [-0.5, 0.5], [0, 100]);
   const glareY = useTransform(ySpring, [-0.5, 0.5], [0, 100]);
   const glareOpacity = useTransform(
@@ -40,7 +46,8 @@ const TiltCard3D = ({
   );
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
+    // Skip on touch devices
+    if (disableMouseEffects || !ref.current) return;
     
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -57,6 +64,15 @@ const TiltCard3D = ({
     x.set(0);
     y.set(0);
   };
+
+  // On touch devices, render without 3D transforms
+  if (disableMouseEffects) {
+    return (
+      <div className={className}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -79,8 +95,7 @@ const TiltCard3D = ({
       >
         {children}
         
-        {/* Glare overlay */}
-        {glareEnabled && (
+        {glareEnabled && !shouldReduceMotion && (
           <motion.div
             className="absolute inset-0 pointer-events-none rounded-[inherit]"
             style={{
@@ -103,6 +118,13 @@ export const Floating3DElement = ({
   className?: string;
   depth?: number;
 }) => {
+  const { disableMouseEffects } = useAnimationConfig();
+  
+  // No 3D transform on touch devices
+  if (disableMouseEffects) {
+    return <div className={className}>{children}</div>;
+  }
+  
   return (
     <motion.div
       className={className}

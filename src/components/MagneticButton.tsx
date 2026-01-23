@@ -1,5 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ReactNode, useRef } from "react";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 
 interface MagneticButtonProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ const MagneticButton = ({
   strength = 0.4 
 }: MagneticButtonProps) => {
   const ref = useRef<HTMLButtonElement>(null);
+  const { disableMouseEffects } = useAnimationConfig();
   
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -27,7 +29,7 @@ const MagneticButton = ({
   const rotateY = useTransform(springX, [-50, 50], [-10, 10]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!ref.current) return;
+    if (disableMouseEffects || !ref.current) return;
     
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -44,6 +46,18 @@ const MagneticButton = ({
     x.set(0);
     y.set(0);
   };
+
+  // Simple button on touch devices
+  if (disableMouseEffects) {
+    return (
+      <button
+        className={`${className} active:scale-95 transition-transform`}
+        onClick={onClick}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
     <motion.button
