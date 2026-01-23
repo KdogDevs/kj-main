@@ -288,7 +288,7 @@ const CloudServices = () => {
                       <p className="text-muted-foreground mb-4">
                         Each service has mobile and desktop apps available for a better experience:
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
                           { name: "Nextcloud Clients", url: "https://nextcloud.com/install/#install-clients" },
                           { name: "Jellyfin Clients", url: "https://jellyfin.org/downloads/clients" },
@@ -299,10 +299,12 @@ const CloudServices = () => {
                             href={app.url} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="flex items-center gap-2 text-sm text-primary hover:underline"
-                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border/30 text-sm font-medium hover:bg-secondary/80 hover:border-primary/30 transition-colors group"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
                           >
-                            <ExternalLink className="w-4 h-4" /> {app.name}
+                            {app.name}
+                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                           </motion.a>
                         ))}
                       </div>
