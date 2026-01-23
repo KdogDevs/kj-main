@@ -1,5 +1,8 @@
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import ScrollReveal, { StaggerContainer, StaggerItem } from "./ScrollReveal";
+import MagneticButton from "./MagneticButton";
 
 const experience = [
   {
@@ -46,84 +49,131 @@ const Resume = () => {
 
   return (
     <section id="resume" className="py-24 px-6 md:px-12 lg:px-24">
-      <div className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg">
+      <motion.div 
+        className="max-w-6xl mx-auto rounded-3xl bg-secondary/50 backdrop-blur-sm border border-border/30 p-8 md:p-12 shadow-lg"
+        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-4xl md:text-5xl font-bold">RESUME</h2>
-          <Button 
-            onClick={handleDownload}
-            className="font-mono text-sm gap-2 w-fit"
+          <ScrollReveal animation="slide-right">
+            <h2 className="text-4xl md:text-5xl font-bold">RESUME</h2>
+          </ScrollReveal>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
           >
-            <Download className="w-4 h-4" />
-            DOWNLOAD PDF
-          </Button>
+            <MagneticButton
+              onClick={handleDownload}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-xl font-mono"
+            >
+              <Download className="w-4 h-4" />
+              DOWNLOAD PDF
+            </MagneticButton>
+          </motion.div>
         </div>
-        <p className="text-muted-foreground font-mono mb-16">
-          Kagen Jensen • kagen@kagen.dev • +1(678)-200-3197
-        </p>
+        <ScrollReveal animation="blur" delay={0.2}>
+          <p className="text-muted-foreground font-mono mb-16">
+            Kagen Jensen • kagen@kagen.dev • +1(678)-200-3197
+          </p>
+        </ScrollReveal>
 
         <div className="grid md:grid-cols-2 gap-16">
           {/* Left Column - Experience & Technical */}
           <div className="space-y-12">
             <div>
-              <h3 className="text-2xl font-bold mb-8 pb-4">
-                WORK EXPERIENCE
-              </h3>
-              <div className="space-y-6">
+              <ScrollReveal animation="slide-up">
+                <h3 className="text-2xl font-bold mb-8 pb-4">
+                  WORK EXPERIENCE
+                </h3>
+              </ScrollReveal>
+              <StaggerContainer staggerDelay={0.15} className="space-y-6">
                 {experience.map((exp, index) => (
-                  <div key={index} className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6">
-                    <span className="font-mono text-sm text-muted-foreground">
-                      {exp.period}
-                    </span>
-                    <h4 className="text-xl font-bold mt-1">{exp.role}</h4>
-                    <p className="text-muted-foreground font-mono text-sm">
-                      {exp.company} • {exp.location}
-                    </p>
-                    <p className="mt-3 text-muted-foreground">{exp.description}</p>
-                  </div>
+                  <StaggerItem key={index}>
+                    <motion.div 
+                      className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
+                      whileHover={{ 
+                        scale: 1.02, 
+                        boxShadow: "0 10px 30px -10px hsl(var(--primary) / 0.1)" 
+                      }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                      <span className="font-mono text-sm text-muted-foreground">
+                        {exp.period}
+                      </span>
+                      <h4 className="text-xl font-bold mt-1">{exp.role}</h4>
+                      <p className="text-muted-foreground font-mono text-sm">
+                        {exp.company} • {exp.location}
+                      </p>
+                      <p className="mt-3 text-muted-foreground">{exp.description}</p>
+                    </motion.div>
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold mb-8 pb-4">
-                TECHNICAL EXPERIENCE
-              </h3>
-              <div className="space-y-3">
+              <ScrollReveal animation="slide-up">
+                <h3 className="text-2xl font-bold mb-8 pb-4">
+                  TECHNICAL EXPERIENCE
+                </h3>
+              </ScrollReveal>
+              <StaggerContainer staggerDelay={0.1} className="space-y-3">
                 {technicalExperience.map((item, index) => (
-                  <div
-                    key={index}
-                    className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-4 text-muted-foreground"
-                  >
-                    {item}
-                  </div>
+                  <StaggerItem key={index}>
+                    <motion.div
+                      className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-4 text-muted-foreground"
+                      whileHover={{ 
+                        x: 10,
+                        backgroundColor: "hsl(var(--accent) / 0.5)"
+                      }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                      {item}
+                    </motion.div>
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             </div>
           </div>
 
           {/* Right Column - Education */}
           <div>
-            <h3 className="text-2xl font-bold mb-8 pb-4">
-              EDUCATION
-            </h3>
-            <div className="space-y-6">
+            <ScrollReveal animation="slide-up">
+              <h3 className="text-2xl font-bold mb-8 pb-4">
+                EDUCATION
+              </h3>
+            </ScrollReveal>
+            <StaggerContainer staggerDelay={0.15} className="space-y-6">
               {education.map((edu, index) => (
-                <div key={index} className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6">
-                  <span className="font-mono text-sm text-muted-foreground">
-                    {edu.period}
-                  </span>
-                  <h4 className="text-xl font-bold mt-1">{edu.school}</h4>
-                  <p className="text-muted-foreground font-mono text-sm">
-                    {edu.location}
-                  </p>
-                  <p className="mt-2 font-medium">{edu.degree}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{edu.details}</p>
-                </div>
+                <StaggerItem key={index}>
+                  <motion.div 
+                    className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
+                    whileHover={{ 
+                      scale: 1.02, 
+                      boxShadow: "0 10px 30px -10px hsl(var(--primary) / 0.1)" 
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <span className="font-mono text-sm text-muted-foreground">
+                      {edu.period}
+                    </span>
+                    <h4 className="text-xl font-bold mt-1">{edu.school}</h4>
+                    <p className="text-muted-foreground font-mono text-sm">
+                      {edu.location}
+                    </p>
+                    <p className="mt-2 font-medium">{edu.degree}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{edu.details}</p>
+                  </motion.div>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
