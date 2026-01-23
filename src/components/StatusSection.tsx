@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Activity, CheckCircle, AlertTriangle, XCircle, ExternalLink, Bell, Loader2, ChevronDown } from "lucide-react";
@@ -11,17 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import TiltCard3D from "./TiltCard3D";
 
 interface MonitorStatus {
   id: number;
   name: string;
-  status: number; // 0 = down, 1 = up, 2 = pending
+  status: number;
 }
 
 interface HeartbeatData {
   monitorID: number;
   status: number;
-  time: string; // ISO timestamp
+  time: string;
   msg?: string;
 }
 
@@ -32,7 +34,7 @@ interface UptimeData {
     monitorList: MonitorStatus[];
   }>;
   heartbeatList?: Record<string, HeartbeatData[]>;
-  uptimeList?: Record<string, number>; // e.g., "1_720" for 30-day uptime
+  uptimeList?: Record<string, number>;
 }
 
 const StatusSection = () => {
@@ -61,7 +63,6 @@ const StatusSection = () => {
     }
   };
 
-  // Handle token-based unsubscribe from email link
   useEffect(() => {
     const unsubscribeToken = searchParams.get("unsubscribe");
     if (unsubscribeToken) {
@@ -84,7 +85,6 @@ const StatusSection = () => {
             description: "Invalid or expired unsubscribe link.",
           });
         } finally {
-          // Remove the token from URL
           searchParams.delete("unsubscribe");
           setSearchParams(searchParams, { replace: true });
         }
@@ -95,10 +95,7 @@ const StatusSection = () => {
 
   useEffect(() => {
     fetchStatus(true);
-    
-    // Poll every 30 seconds for real-time updates
     const interval = setInterval(() => fetchStatus(false), 30000);
-    
     return () => clearInterval(interval);
   }, []);
 
@@ -184,7 +181,6 @@ const StatusSection = () => {
   const getAverageUptime = () => {
     if (!statusData?.uptimeList) return null;
     
-    // uptimeList keys are like "1_720" meaning monitor 1's 720-hour (30-day) uptime
     const uptimes30d = Object.entries(statusData.uptimeList)
       .filter(([key]) => key.endsWith("_720"))
       .map(([, value]) => value);
@@ -198,7 +194,6 @@ const StatusSection = () => {
   const getLastIncident = () => {
     if (!statusData?.heartbeatList || !statusData?.publicGroupList) return null;
     
-    // Build monitor name map
     const monitorNames: Record<number, string> = {};
     statusData.publicGroupList.forEach(group => {
       (group.monitorList || []).forEach(m => {
@@ -206,18 +201,15 @@ const StatusSection = () => {
       });
     });
 
-    // Find most recent down status across all monitors
     let lastIncident: { name: string; time: Date; endTime?: Date } | null = null;
 
     Object.entries(statusData.heartbeatList).forEach(([monitorId, heartbeats]) => {
       const name = monitorNames[parseInt(monitorId)] || "Unknown";
       
-      // Look for down periods (status = 0)
       for (let i = heartbeats.length - 1; i >= 0; i--) {
         if (heartbeats[i].status === 0) {
           const downTime = new Date(heartbeats[i].time);
           
-          // Find when it came back up
           let endTime: Date | undefined;
           for (let j = i + 1; j < heartbeats.length; j++) {
             if (heartbeats[j].status === 1) {
@@ -256,148 +248,238 @@ const StatusSection = () => {
   const lastIncident = getLastIncident();
 
   return (
-    <section className="mb-24">
+    <motion.section 
+      className="mb-24"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Activity className="w-6 h-6" />
-          <h2 className="text-2xl font-bold">Service Status</h2>
-        </div>
-        <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-          <a 
-            href="https://uptime.kagen.dev/status/cloud-services" 
-            target="_blank" 
-            rel="noopener noreferrer"
+        <motion.div 
+          className="flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+        >
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            Full Status Page
-            <ExternalLink className="w-4 h-4 ml-2" />
-          </a>
-        </Button>
+            <Activity className="w-6 h-6" />
+          </motion.div>
+          <h2 className="text-2xl font-bold">Service Status</h2>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button variant="ghost" size="sm" className="rounded-xl" asChild>
+            <a 
+              href="https://uptime.kagen.dev/status/cloud-services" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Full Status Page
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </a>
+          </Button>
+        </motion.div>
       </div>
 
-      <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm shadow-md overflow-hidden">
-        {/* Overall Status Banner */}
-        <div className="p-6 border-b border-border/30 bg-secondary/30">
-          {loading ? (
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span className="text-muted-foreground">Checking status...</span>
-            </div>
-          ) : error ? (
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              <span className="text-muted-foreground">{error}</span>
-            </div>
-          ) : overall ? (
-            <div className="flex items-center gap-3">
-              {getStatusIcon(overall.status)}
-              <span className={`font-medium ${overall.color}`}>{overall.text}</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Uptime Stats */}
-        {!loading && !error && (averageUptime || lastIncident) && (
-          <div className="px-6 py-4 border-b border-border/30 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            {averageUptime && (
-              <span>
-                <span className="font-medium text-foreground">Past 30 days:</span>{" "}
-                {averageUptime}% uptime across all services.
-              </span>
-            )}
-            {averageUptime && lastIncident && (
-              <span className="hidden sm:inline text-border">•</span>
-            )}
-            {lastIncident && (
-              <span>
-                <span className="font-medium text-foreground">Last incident:</span>{" "}
-                {formatIncidentTime(lastIncident)}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Monitor List */}
-        {!loading && !error && statusData?.publicGroupList && (
-          <div className="divide-y divide-border/30">
-            {statusData.publicGroupList.flatMap(group => 
-              (group.monitorList || []).map(monitor => {
-                const heartbeats = statusData.heartbeatList?.[monitor.id.toString()];
-                const latestStatus = heartbeats?.[heartbeats.length - 1]?.status ?? 1;
-                
-                return (
-                  <div 
-                    key={monitor.id} 
-                    className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors"
-                  >
-                    <span className="font-medium">{monitor.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {getStatusText(latestStatus)}
-                      </span>
-                      {getStatusIcon(latestStatus)}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
-
-        {/* Notification Signup */}
-        <div className="p-6 bg-secondary/20 border-t border-border/30">
-          <div className="flex items-center gap-2 mb-3">
-            <Bell className="w-4 h-4" />
-            <span className="font-medium text-sm">
-              {actionMode === "subscribe" 
-                ? "Get notified when services go down" 
-                : "Unsubscribe from status notifications"}
-            </span>
-          </div>
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 rounded-xl"
-              required
-            />
-            <div className="flex">
-              <Button 
-                type="submit" 
-                disabled={subscribing}
-                className="rounded-l-xl rounded-r-none border-r-0"
+      <TiltCard3D intensity={3}>
+        <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm shadow-md overflow-hidden">
+          {/* Overall Status Banner */}
+          <motion.div 
+            className="p-6 border-b border-border/30 bg-secondary/30"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            {loading ? (
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Loader2 className="w-5 h-5" />
+                </motion.div>
+                <span className="text-muted-foreground">Checking status...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                <span className="text-muted-foreground">{error}</span>
+              </div>
+            ) : overall ? (
+              <motion.div 
+                className="flex items-center gap-3"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
               >
-                {subscribing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  actionMode === "subscribe" ? "Subscribe" : "Unsubscribe"
-                )}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    type="button"
-                    variant="default" 
-                    className="rounded-l-none rounded-r-xl px-2 border-l border-primary-foreground/20"
+                <motion.div
+                  animate={overall.status === 1 ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {getStatusIcon(overall.status)}
+                </motion.div>
+                <span className={`font-medium ${overall.color}`}>{overall.text}</span>
+              </motion.div>
+            ) : null}
+          </motion.div>
+
+          {/* Uptime Stats */}
+          <AnimatePresence>
+            {!loading && !error && (averageUptime || lastIncident) && (
+              <motion.div 
+                className="px-6 py-4 border-b border-border/30 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                {averageUptime && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
                   >
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setActionMode("subscribe")}>
-                    Subscribe
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setActionMode("unsubscribe")}>
-                    Unsubscribe
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <span className="font-medium text-foreground">Past 30 days:</span>{" "}
+                    {averageUptime}% uptime across all services.
+                  </motion.span>
+                )}
+                {averageUptime && lastIncident && (
+                  <span className="hidden sm:inline text-border">•</span>
+                )}
+                {lastIncident && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <span className="font-medium text-foreground">Last incident:</span>{" "}
+                    {formatIncidentTime(lastIncident)}
+                  </motion.span>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Monitor List */}
+          <AnimatePresence>
+            {!loading && !error && statusData?.publicGroupList && (
+              <div className="divide-y divide-border/30">
+                {statusData.publicGroupList.flatMap((group, groupIndex) => 
+                  (group.monitorList || []).map((monitor, monitorIndex) => {
+                    const heartbeats = statusData.heartbeatList?.[monitor.id.toString()];
+                    const latestStatus = heartbeats?.[heartbeats.length - 1]?.status ?? 1;
+                    
+                    return (
+                      <motion.div 
+                        key={monitor.id} 
+                        className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * (groupIndex + monitorIndex) }}
+                        whileHover={{ x: 5 }}
+                      >
+                        <span className="font-medium">{monitor.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {getStatusText(latestStatus)}
+                          </span>
+                          <motion.div
+                            animate={latestStatus === 1 ? { scale: [1, 1.1, 1] } : {}}
+                            transition={{ duration: 2, repeat: Infinity, delay: monitorIndex * 0.2 }}
+                          >
+                            {getStatusIcon(latestStatus)}
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Notification Signup */}
+          <motion.div 
+            className="p-6 bg-secondary/20 border-t border-border/30"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Bell className="w-4 h-4" />
+              </motion.div>
+              <span className="font-medium text-sm">
+                {actionMode === "subscribe" 
+                  ? "Get notified when services go down" 
+                  : "Unsubscribe from status notifications"}
+              </span>
             </div>
-          </form>
+            <form onSubmit={handleSubmit} className="flex gap-3">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 rounded-xl"
+                required
+              />
+              <div className="flex">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    type="submit" 
+                    disabled={subscribing}
+                    className="rounded-l-xl rounded-r-none border-r-0"
+                  >
+                    {subscribing ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Loader2 className="w-4 h-4" />
+                      </motion.div>
+                    ) : (
+                      actionMode === "subscribe" ? "Subscribe" : "Unsubscribe"
+                    )}
+                  </Button>
+                </motion.div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      type="button"
+                      variant="default" 
+                      className="rounded-l-none rounded-r-xl px-2 border-l border-primary-foreground/20"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setActionMode("subscribe")}>
+                      Subscribe
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActionMode("unsubscribe")}>
+                      Unsubscribe
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </form>
+          </motion.div>
         </div>
-      </div>
-    </section>
+      </TiltCard3D>
+    </motion.section>
   );
 };
 
