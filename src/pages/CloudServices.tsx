@@ -276,40 +276,36 @@ const CloudServices = () => {
                 ))}
                 
                 <StaggerItem>
-                  <TiltCard3D intensity={5}>
-                    <motion.div 
-                      className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
-                      whileHover={{ 
-                        scale: 1.02,
-                        boxShadow: "0 15px 40px -10px hsl(var(--primary) / 0.1)" 
-                      }}
-                    >
-                      <h3 className="text-xl font-bold mb-3">3. Download Apps</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Each service has mobile and desktop apps available for a better experience:
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          { name: "Nextcloud Clients", url: "https://nextcloud.com/install/#install-clients" },
-                          { name: "Jellyfin Clients", url: "https://jellyfin.org/downloads/clients" },
-                          { name: "Immich Mobile App", url: "https://immich.app/docs/features/mobile-app" },
-                        ].map((app, i) => (
-                          <motion.a 
-                            key={i}
-                            href={app.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="flex items-center justify-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border/30 text-sm font-medium hover:bg-secondary/80 hover:border-primary/30 transition-colors group"
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {app.name}
-                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                          </motion.a>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </TiltCard3D>
+                  <motion.div 
+                    className="rounded-xl bg-background/50 backdrop-blur-sm border border-border/30 p-6"
+                    whileHover={{ 
+                      scale: 1.02,
+                      boxShadow: "0 15px 40px -10px hsl(var(--primary) / 0.1)" 
+                    }}
+                  >
+                    <h3 className="text-xl font-bold mb-3">3. Download Apps</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Each service has mobile and desktop apps available for a better experience:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        { name: "Nextcloud Clients", url: "https://nextcloud.com/install/#install-clients" },
+                        { name: "Jellyfin Clients", url: "https://jellyfin.org/downloads/clients" },
+                        { name: "Immich Mobile App", url: "https://immich.app/docs/features/mobile-app" },
+                      ].map((app, i) => (
+                        <a 
+                          key={i}
+                          href={app.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center justify-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border/30 text-sm font-medium hover:bg-secondary/80 hover:border-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] group cursor-pointer"
+                        >
+                          {app.name}
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </a>
+                      ))}
+                    </div>
+                  </motion.div>
                 </StaggerItem>
               </StaggerContainer>
 
