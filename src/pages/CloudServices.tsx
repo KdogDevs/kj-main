@@ -7,7 +7,7 @@ import StatusSection from "@/components/StatusSection";
 import SpeedTest from "@/components/SpeedTest";
 import TiltCard3D, { Floating3DElement } from "@/components/TiltCard3D";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
-import MagneticButton from "@/components/MagneticButton";
+import { useAnimationConfig } from "@/hooks/useAnimationConfig";
 import { Cloud, Film, Image, GitBranch, BookOpen, Key, FileText, ExternalLink, Gauge } from "lucide-react";
 
 const services = [
@@ -56,66 +56,91 @@ const services = [
 ];
 
 const ServiceCard = ({ service, index }: { service: typeof services[0]; index: number }) => {
-  return (
+  const { isMobile, shouldReduceMotion } = useAnimationConfig();
+
+  const cardContent = (
     <motion.div
-      initial={{ opacity: 0, y: 60, rotateX: -15 }}
-      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ 
-        duration: 0.6, 
-        delay: index * 0.1,
-        ease: [0.25, 0.1, 0.25, 1] 
+      className="relative rounded-2xl border border-border/50 p-8 bg-card/60 backdrop-blur-sm shadow-md h-full overflow-hidden group cursor-pointer"
+      whileHover={isMobile ? {} : { 
+        boxShadow: "0 25px 50px -12px hsl(var(--primary) / 0.2)",
       }}
+      whileTap={isMobile ? { scale: 0.98 } : {}}
     >
-      <TiltCard3D intensity={10} className="h-full">
-        <motion.div
-          className="relative rounded-2xl border border-border/50 p-8 bg-card/60 backdrop-blur-sm shadow-md h-full overflow-hidden group"
-          whileHover={{ 
-            boxShadow: "0 25px 50px -12px hsl(var(--primary) / 0.2)",
-          }}
-        >
-          {/* Gradient background on hover */}
-          <motion.div
-            className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-          />
-          
-          <div className="relative z-10">
-            <div className="flex items-start justify-between mb-6">
-              <Floating3DElement depth={30}>
-                <motion.div 
-                  className="w-14 h-14 rounded-xl bg-secondary/80 backdrop-blur-sm flex items-center justify-center"
-                  whileHover={{ 
-                    rotate: [0, -10, 10, 0],
-                    scale: 1.1,
-                  }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <service.icon className="w-7 h-7" strokeWidth={1.5} />
-                </motion.div>
-              </Floating3DElement>
-              <motion.a
-                href={service.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-xl hover:bg-accent/50 transition-colors"
-                whileHover={{ scale: 1.1, rotate: 15 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ExternalLink className="w-5 h-5" />
-              </motion.a>
+      {/* Gradient background on hover */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+      />
+      
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-6">
+          {isMobile ? (
+            <div className="w-14 h-14 rounded-xl bg-secondary/80 backdrop-blur-sm flex items-center justify-center">
+              <service.icon className="w-7 h-7" strokeWidth={1.5} />
             </div>
+          ) : (
+            <Floating3DElement depth={30}>
+              <motion.div 
+                className="w-14 h-14 rounded-xl bg-secondary/80 backdrop-blur-sm flex items-center justify-center"
+                whileHover={{ 
+                  rotate: [0, -10, 10, 0],
+                  scale: 1.1,
+                }}
+                transition={{ duration: 0.5 }}
+              >
+                <service.icon className="w-7 h-7" strokeWidth={1.5} />
+              </motion.div>
+            </Floating3DElement>
+          )}
+          <div className="p-2 rounded-xl">
+            <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </div>
+        </div>
+        {isMobile ? (
+          <>
+            <h3 className="text-2xl font-bold mb-3">{service.name}</h3>
+            <p className="text-muted-foreground">{service.description}</p>
+          </>
+        ) : (
+          <>
             <Floating3DElement depth={20}>
               <h3 className="text-2xl font-bold mb-3">{service.name}</h3>
             </Floating3DElement>
             <p className="text-muted-foreground">{service.description}</p>
-          </div>
-        </motion.div>
-      </TiltCard3D>
+          </>
+        )}
+      </div>
     </motion.div>
+  );
+
+  return (
+    <motion.a
+      href={service.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block h-full"
+      initial={{ opacity: 0, y: shouldReduceMotion ? 30 : 60, rotateX: shouldReduceMotion ? 0 : -15 }}
+      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ 
+        duration: shouldReduceMotion ? 0.4 : 0.6, 
+        delay: shouldReduceMotion ? index * 0.05 : index * 0.1,
+        ease: [0.25, 0.1, 0.25, 1] 
+      }}
+    >
+      {isMobile ? (
+        cardContent
+      ) : (
+        <TiltCard3D intensity={10} className="h-full">
+          {cardContent}
+        </TiltCard3D>
+      )}
+    </motion.a>
   );
 };
 
 const CloudServices = () => {
+  const { isMobile } = useAnimationConfig();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -127,32 +152,34 @@ const CloudServices = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <CursorGlow />
+      {!isMobile && <CursorGlow />}
       <Navigation />
       
       <main className="pt-32 pb-24 px-6 md:px-12 lg:px-24">
         <div className="max-w-6xl mx-auto">
-          {/* Animated background elements */}
-          <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-            <motion.div
-              className="absolute top-1/3 -left-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, 50, 0],
-                scale: [1, 1.3, 1],
-              }}
-              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className="absolute bottom-1/3 -right-40 w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl"
-              animate={{
-                x: [0, -80, 0],
-                y: [0, -40, 0],
-                scale: [1.2, 1, 1.2],
-              }}
-              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
+          {/* Animated background elements - desktop only */}
+          {!isMobile && (
+            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+              <motion.div
+                className="absolute top-1/3 -left-40 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl"
+                animate={{
+                  x: [0, 100, 0],
+                  y: [0, 50, 0],
+                  scale: [1, 1.3, 1],
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="absolute bottom-1/3 -right-40 w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl"
+                animate={{
+                  x: [0, -80, 0],
+                  y: [0, -40, 0],
+                  scale: [1.2, 1, 1.2],
+                }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </div>
+          )}
 
           {/* Header */}
           <div className="mb-16">
