@@ -14,30 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      uptime_subscriptions: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          unsubscribe_token: string
-          verified: boolean
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          unsubscribe_token?: string
-          verified?: boolean
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          unsubscribe_token?: string
-          verified?: boolean
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
