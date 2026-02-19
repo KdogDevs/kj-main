@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import CursorGlow from "@/components/CursorGlow";
-import StatusSection from "@/components/StatusSection";
+
 import SpeedTest from "@/components/SpeedTest";
 import TiltCard3D, { Floating3DElement } from "@/components/TiltCard3D";
 import ScrollReveal, { StaggerContainer, StaggerItem } from "@/components/ScrollReveal";
@@ -207,10 +207,8 @@ const CloudServices = () => {
             </motion.p>
           </div>
 
-          {/* Status Section */}
-          <ScrollReveal animation="slide-up" delay={0.2}>
-            <StatusSection />
-          </ScrollReveal>
+
+
 
           {/* Services Grid */}
           <section className="mb-24">
